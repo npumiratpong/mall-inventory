@@ -64,7 +64,6 @@ app.add_middleware(
 class Token(BaseModel):
     access_token: str
     token_type: str
-    role: str
 
 class TokenData(BaseModel):
     username: Union[str, None] = None
@@ -124,7 +123,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
+        username: str = payload.get("User")
         if username is None:
             raise credentials_exception
         token_data = TokenData(username=username)
@@ -153,8 +152,12 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires)
-    return {"access_token": access_token, "token_type": "bearer", "role": user.role}
+        data = {
+            "User": user.username,
+            "Role": user.role,
+        },
+        expires_delta=access_token_expires)
+    return {"access_token": access_token, "token_type": "Bearer"}
 
 @app.get("/users/me", response_model=User)
 async def read_users_me(current_user: User = Depends(get_current_active_user)):
