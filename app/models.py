@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Time
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Time, DateTime
 from sqlalchemy.orm import relationship
 
 from .database import Base
@@ -12,12 +12,11 @@ class User(Base):
     first_name = Column(String)
     last_name = Column(String)
     email = Column(String, unique=True)
-    modified_when = Column(Time)
-    created_when = Column(Time)
+    modified_when = Column(DateTime)
+    created_when = Column(DateTime)
     hashed_password = Column(String)
-    is_active = Column(Boolean, default=True)
-
-    items = relationship("Item", back_populates="owner")
+    is_active = Column(Boolean)
+    role = Column(String)
 
 # class Item(Base):
 #     __tablename__ = "items"

@@ -1,5 +1,6 @@
 from typing import Union
 from pydantic import BaseModel
+from datetime import datetime
 
 class ItemBase(BaseModel):
     title: str
@@ -16,15 +17,27 @@ class Item(ItemBase):
         orm_mode = True
 
 class UserBase(BaseModel):
-    email: str
+    first_name: Union[str, None] = None
+    last_name: Union[str, None] = None
+    email: Union[str, None] = None
+    modified_when: Union[datetime, None] = None
+    created_when: Union[datetime, None] = None
 
 class UserCreate(UserBase):
     password: str
 
 class User(UserBase):
-    id: int
-    is_active: bool
-    items: list[Item] = []
+    user_id: int
+    username: str
+    role: Union[str, None] = None
+    is_active: Union[bool, None] = None  
 
     class Config:
         orm_mode = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    username: Union[str, None] = None
