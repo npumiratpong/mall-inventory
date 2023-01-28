@@ -1,12 +1,16 @@
 from typing import Union, Optional, List, Dict
 from datetime import datetime, timedelta
 
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, status, Request, Response
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
+from sqlalchemy.orm import Session
 from jose import JWTError, jwt
 from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
+
+from . import crud, models, schemas
+from .database import SessionLocal, engine
 
 SECRET_KEY = "4757a5228c03cece3cfd8ce77e05e1769597b94bf416d934120bb0720c91f3ba"
 ALGORITHM = "HS256"
@@ -61,6 +65,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str
@@ -92,13 +98,23 @@ def verify_password(plain_password, hashed_password):
 def get_password_hash(password):
     return pwd_context.hash(password)
 
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    except Exception as e:
+        print (f"This is error {e}")
+    finally:
+        db.close()
+
 def get_user(db, username: str):
     if username in db:
         user_dict = db[username]
         return UserInDB(**user_dict)
 
-def authenticate_user(fake_db, username: str, password: str):
-    user = get_user(fake_db, username)
+def authenticate_user(db, username: str, password: str):
+    # user = get_user(fake_db, username)
+    user = crud.get_user_by_username(db, username=username)
     if not user:
         return False
     if not verify_password(password, user.hashed_password):
@@ -129,7 +145,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         token_data = TokenData(username=username)
     except JWTError:
         raise credentials_exception
-    user = get_user(fake_users_db, username=token_data.username)
+    user = crud.get_user_by_username(db, username=username)
     if user is None:
         raise credentials_exception
     return user
@@ -140,8 +156,8 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
     return current_user
 
 @app.post("/token", response_model=Token)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = authenticate_user(fake_users_db, form_data.username, form_data.password)
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(get_db)):
+    user = authenticate_user(db, form_data.username, form_data.password)
     if not user.is_active:
         raise HTTPException(status_code=403, detail="Inactive User")
     elif not user:
