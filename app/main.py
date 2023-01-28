@@ -6,6 +6,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from pydantic import BaseModel
+from starlette.middleware.cors import CORSMiddleware
 
 SECRET_KEY = "4757a5228c03cece3cfd8ce77e05e1769597b94bf416d934120bb0720c91f3ba"
 ALGORITHM = "HS256"
@@ -38,10 +39,19 @@ fake_users_db = {
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 class Token(BaseModel):
     access_token: str
     token_type: str
     role: str
+
 
 class TokenData(BaseModel):
     username: Union[str, None] = None
