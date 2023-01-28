@@ -22,7 +22,7 @@ fake_users_db = {
         "modified_when": "2021-10-10",
         "created_when": "2021-10-11",
         "hashed_password": "$2y$10$Oii4iPEwk8MIQ2wp0WOdq.7XGMneEUOMUtq6aj/lp7rPQnTJLZVZy",
-        "disabled": False,
+        "is_active": True,
     },
     "alice": {
         "user_id": 10002,
@@ -33,7 +33,7 @@ fake_users_db = {
         "modified_when": "2021-10-10",
         "created_when": "2021-10-11",
         "hashed_password": "$2y$10$0u4H13Xn/BOJ2VvN12vZkepP4FbRAClUnazWhm3xmeynPK6gw3Apy",
-        "disabled": False,
+        "is_active": False,
     }
 }
 
@@ -52,7 +52,6 @@ class Token(BaseModel):
     token_type: str
     role: str
 
-
 class TokenData(BaseModel):
     username: Union[str, None] = None
 
@@ -64,8 +63,7 @@ class User(BaseModel):
     email: Union[str, None] = None
     modified_when: Union[str, None] = None
     created_when: Union[str, None] = None
-    disabled: Union[bool, None] = None
-
+    is_active: Union[bool, None] = None
 
 class UserInDB(User):
     hashed_password: str
@@ -73,7 +71,6 @@ class UserInDB(User):
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
 
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
@@ -104,7 +101,6 @@ def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -124,32 +120,30 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         raise credentials_exception
     return user
 
-
 async def get_current_active_user(current_user: User = Depends(get_current_user)):
-    if current_user.disabled:
-        raise HTTPException(status_code=400, detail="Inactive User")
+    if not current_user.is_active:
+        raise HTTPException(status_code=403, detail="Inactive User")
     return current_user
-
 
 @app.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     user = authenticate_user(fake_users_db, form_data.username, form_data.password)
-    if not user:
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="Inactive User")
+    elif not user:
         raise HTTPException(
-            status_code=400, 
-            detail="Incorrect Username or Password",
-            headers={"WWW-Authenticate": "Bearer"},
+            status_code=401, 
+            detail= "Incorrect Username or Password",
+            headers= {"WWW-Authenticate": "Bearer"},
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires)
     return {"access_token": access_token, "token_type": "bearer", "role": "admin"}
 
-
 @app.get("/users/me", response_model=User)
 async def read_users_me(current_user: User = Depends(get_current_active_user)):
     return current_user
-
 
 @app.get("/users/me/items/")
 async def read_own_items(current_user: User = Depends(get_current_active_user)):
