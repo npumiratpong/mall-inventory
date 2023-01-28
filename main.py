@@ -101,4 +101,5 @@ async def read_users_me(current_user: User = Depends(get_current_active_user)):
 
 @app.get("/items/")
 async def read_items(token: str = Depends(get_current_active_user)):
+    a = 'a'
     return {"token": token}
