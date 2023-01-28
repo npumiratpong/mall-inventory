@@ -19,9 +19,22 @@ fake_users_db = {
         "first_name": "John",
         "last_name": "Doe",
         "email": "johndoe@example.com",
-        "modified_when": "2021-10-10",
-        "created_when": "2021-10-11",
+        "modified_when": datetime.utcnow(),
+        "created_when": datetime.utcnow(),
         "hashed_password": "$2y$10$Oii4iPEwk8MIQ2wp0WOdq.7XGMneEUOMUtq6aj/lp7rPQnTJLZVZy",
+        "role": 'admin',
+        "is_active": True,
+    },
+    "jason": {
+        "user_id": 10001,
+        "username": "jason",
+        "first_name": "Jason",
+        "last_name": "Doe",
+        "email": "jason@example.com",
+        "modified_when": datetime.utcnow(),
+        "created_when": datetime.utcnow(),
+        "hashed_password": "$2y$10$Oii4iPEwk8MIQ2wp0WOdq.7XGMneEUOMUtq6aj/lp7rPQnTJLZVZy",
+        "role": 'sell_store',
         "is_active": True,
     },
     "alice": {
@@ -30,9 +43,10 @@ fake_users_db = {
         "first_name": "Alice",
         "last_name": "Wonderson",
         "email": "alice@example.com",
-        "modified_when": "2021-10-10",
-        "created_when": "2021-10-11",
+        "modified_when": datetime.utcnow(),
+        "created_when": datetime.utcnow(),
         "hashed_password": "$2y$10$0u4H13Xn/BOJ2VvN12vZkepP4FbRAClUnazWhm3xmeynPK6gw3Apy",
+        "role": 'sell_store',
         "is_active": False,
     }
 }
@@ -61,8 +75,9 @@ class User(BaseModel):
     first_name: Union[str, None] = None
     last_name: Union[str, None] = None
     email: Union[str, None] = None
-    modified_when: Union[str, None] = None
-    created_when: Union[str, None] = None
+    modified_when: Union[datetime, None] = None
+    created_when: Union[datetime, None] = None
+    role: Union[str, None] = None
     is_active: Union[bool, None] = None
 
 class UserInDB(User):
@@ -139,7 +154,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires)
-    return {"access_token": access_token, "token_type": "bearer", "role": "admin"}
+    return {"access_token": access_token, "token_type": "bearer", "role": user.role}
 
 @app.get("/users/me", response_model=User)
 async def read_users_me(current_user: User = Depends(get_current_active_user)):
