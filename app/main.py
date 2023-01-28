@@ -4,6 +4,7 @@ from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 from pydantic import BaseModel
+from starlette.middleware.cors import CORSMiddleware
 
 fake_users_db = {
     "johndoe": {
@@ -24,6 +25,14 @@ fake_users_db = {
 
 app = FastAPI()
 
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def fake_hash_password(password: str):
     return "fakehashed" + password
@@ -71,7 +80,7 @@ async def get_current_user(token:str = Depends(oauth2_scheme)):
 async def get_current_active_user(current_user: User = Depends(get_current_user)):
     if current_user.disabled:
         raise HTTPException(
-            status_code=400,
+            status_code=401,
             detail="Inactive User"
         )
     return current_user
@@ -82,14 +91,14 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     user_dict = fake_users_db.get(form_data.username, None)
     if not user_dict:
         raise HTTPException(
-            status_code=400,
+            status_code=401,
             detail="Incorrect Username or Password"
         )
     user = UserInDB(**user_dict)
     hashed_password = fake_hash_password(form_data.password)
     if not hashed_password == user.hashed_password:
         raise HTTPException(
-            status_code=400,
+            status_code=401,
             detail="Incorrect Username or Password"
         )
     return {"access_token": user.username, "token_type": "bearer"}
