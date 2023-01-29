@@ -40,5 +40,9 @@ class Token(BaseModel):
     refresh_token: str
     token_type: str
 
+class RefreshToken(BaseModel):
+    access_token: str
+    token_type: str
+
 class TokenData(BaseModel):
     username: Union[str, None] = None
