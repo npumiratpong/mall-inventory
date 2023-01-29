@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 
 from fastapi import Depends, FastAPI, HTTPException, status, Request, Response
 from fastapi.responses import RedirectResponse, HTMLResponse
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi_jwt_auth import AuthJWT
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
@@ -11,10 +10,12 @@ from jose import JWTError, jwt
 from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
 
-from . import crud, models, schemas
-from .database import SessionLocal, engine
-from .controller import authenticate_user, create_access_token, get_current_active_user, get_db, \
-    ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_MINUTES, oauth2_scheme, SECRET_KEY, ALGORITHM, validate_refresh_token
+from .models import models, schemas
+from .service import database_connection
+from .service.database import SessionLocal, engine
+from .service.controller import authenticate_user, create_access_token, get_current_active_user, get_db
+
+from .api.v1 import auth
 
 app = FastAPI()
 
@@ -36,43 +37,8 @@ async def db_session_middleware(request: Request, call_next):
         request.state.db.close()
     return response
 
-@app.post("/login", response_model= schemas.Token)
-async def login_for_access_token(response: Response, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    if not form_data.username or not form_data.password:
-        raise HTTPException(status_code=401, detail="Username and Password are required")
-    user = authenticate_user(db, form_data.username, form_data.password)
-    if not user:
-        raise HTTPException(
-            status_code=401, 
-            detail= "Incorrect Username or Password",
-            headers= {"WWW-Authenticate": "Bearer"},
-        )
-    if not user.is_active:
-        raise HTTPException(status_code=403, detail="Inactive User")
-    access_token = create_access_token(data = {"User": user.username, "Role": user.role}, expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-    refresh_token = create_access_token(data = {"User": user.username, "Role": user.role}, expires_delta=timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES))
-
-    response.set_cookie('access_token', access_token)
-    response.set_cookie('refresh_token', refresh_token)
-    response.set_cookie('token_type', "Bearer")
-
-    return {"access_token": access_token,"refresh_token": refresh_token , "token_type": "Bearer"}
-
-@app.post('/refresh', response_model= schemas.RefreshToken)
-def refresh(response: Response, current_user: schemas.User = Depends(get_current_active_user)):
-    if not current_user.username:
-        raise HTTPException(status_code=401, detail="Unauthorized")
-    access_token = create_access_token(data = {"User": current_user.username, "Role": current_user.role}, expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-    response.set_cookie('access_token', access_token)
-    return {"access_token": access_token, "token_type": "Bearer"}
-    
-
-@app.get('/logout', response_model= schemas.Logout)
-def logout(response: Response, current_user: schemas.User = Depends(get_current_active_user)):
-    response.delete_cookie("access_token")
-    response.delete_cookie("refresh_token")
-    response.delete_cookie("token_type")
-    return {"status": "success"}
+app.include_router(auth.router, tags=['Auth'], prefix='/api/v1')
+# app.include_router(user.router, tags=['Users'], prefix='/api/users')
 
 @app.get("/users/me", response_model= schemas.User)
 async def read_users_me(current_user: schemas.User = Depends(get_current_active_user)):
@@ -80,7 +46,7 @@ async def read_users_me(current_user: schemas.User = Depends(get_current_active_
 
 @app.get("/users/{username}", response_model=schemas.User)
 def get_user_in_db(username: str = Depends(get_current_active_user), db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_username(db, username=username)
+    db_user = database_connection.get_user_by_username(db, username=username)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
