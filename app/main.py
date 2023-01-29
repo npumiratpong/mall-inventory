@@ -67,7 +67,7 @@ def refresh(response: Response, current_user: schemas.User = Depends(get_current
     return {"access_token": access_token, "token_type": "Bearer"}
     
 
-@app.get('/logout')
+@app.get('/logout', response_model= schemas.Logout)
 def logout(response: Response, current_user: schemas.User = Depends(get_current_active_user)):
     response.delete_cookie("access_token")
     response.delete_cookie("refresh_token")
