@@ -34,7 +34,7 @@ async def login_for_access_token(response: Response, form_data: OAuth2PasswordRe
     return {"access_token": access_token,"refresh_token": refresh_token , "token_type": "Bearer"}
 
 @router.post('/refresh', response_model= schemas.RefreshToken)
-def refresh(response: Response, current_user: schemas.User = Depends(get_current_active_user)):
+def refresh_access_token(response: Response, current_user: schemas.User = Depends(get_current_active_user)):
     if not current_user.username:
         raise HTTPException(status_code=401, detail="Unauthorized")
     access_token = create_access_token(data = {"User": current_user.username, "Role": current_user.role}, expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
@@ -43,7 +43,7 @@ def refresh(response: Response, current_user: schemas.User = Depends(get_current
     
 
 @router.get('/logout', response_model= schemas.Logout)
-def logout(response: Response, current_user: schemas.User = Depends(get_current_active_user)):
+def logout_remove_token(response: Response, current_user: schemas.User = Depends(get_current_active_user)):
     response.delete_cookie("access_token")
     response.delete_cookie("refresh_token")
     response.delete_cookie("token_type")

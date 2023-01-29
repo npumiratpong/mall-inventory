@@ -5,3 +5,5 @@ app/api/v1/__pycache__/*
 app/service/__pycache__/*
 app/models/__pycache__/*
 
+job_scheduler/__pycache__/*
+job_scheduler/products/__pycache__/*

@@ -37,7 +37,7 @@ async def db_session_middleware(request: Request, call_next):
         request.state.db.close()
     return response
 
-app.include_router(auth.router, tags=['Auth'], prefix='/api/v1')
+app.include_router(auth.router, tags=['auth'], prefix='/api/v1')
 # app.include_router(user.router, tags=['Users'], prefix='/api/users')
 
 @app.get("/users/me", response_model= schemas.User)
@@ -54,3 +54,7 @@ def get_user_in_db(username: str = Depends(get_current_active_user), db: Session
 @app.get("/users/me/items/")
 async def read_own_items(current_user: models.User = Depends(get_current_active_user)):
     return [{"item_id": "Foo", "owner": current_user.username}]
+
+@app.get("/healthcheck")
+async def read_own_items(current_user: models.User = Depends(get_current_active_user)):
+    return [{"Status": "Hello World! "}]

@@ -11,3 +11,4 @@ sqlalchemy==2.0.0
 PyMySQL==1.0.2
 fastapi-jwt-auth==0.5.0
 PyJWT==1.7.1
+requests==2.28.2
