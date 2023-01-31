@@ -15,7 +15,7 @@ from ...service.controller import get_current_active_user
 router = APIRouter()
 
 @router.get('/pre-search/{type}')
-def get_product_from_product_lists(type:str, current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)) -> Dict[List]:
+def get_product_from_product_lists(type:str, current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)) -> Dict:
     items = get_items(db, type=type)
     return {"fetch_items": items}
 
