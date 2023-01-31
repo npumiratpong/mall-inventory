@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Optional, List
 from pydantic import BaseModel
 from datetime import datetime
 
@@ -26,15 +26,6 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str
 
-class User(UserBase):
-    user_id: int
-    username: str
-    role: Union[str, None] = None
-    is_active: Union[bool, None] = None  
-
-    class Config:
-        orm_mode = True
-
 class Token(BaseModel):
     access_token: str
     refresh_token: str
@@ -49,3 +40,16 @@ class Logout(BaseModel):
 
 class TokenData(BaseModel):
     username: Union[str, None] = None
+
+class User(BaseModel):
+    user_id: int
+    username: str
+    hashed_password: str
+    role: Optional[str] = None
+    is_active: Optional[bool] = None  
+
+class Search(BaseModel):
+    product_id: List[str]
+
+class PreSearch(BaseModel):
+    items: List[str]

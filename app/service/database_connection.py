@@ -1,30 +1,11 @@
 from sqlalchemy.orm import Session
-
+from sqlalchemy.sql import text
+from fastapi import Request
+from typing import Dict, List, Optional, Union
+    
 from ..models import models
 from ..models import schemas
 
-def get_user_by_id(db: Session, user_id: int):
-    return db.query(models.User).filter(models.User.user_id == user_id).first()
-
-def get_user_by_username(db: Session, username: str):
-    return db.query(models.User).filter(models.User.username == username).first()
-
-def get_user_by_email(db: Session, email: str):
-    return db.query(models.User).filter(models.User.email == email).first()
-
-def get_users(db: Session, skip: int=0, limit: int=100):
-    return db.query(models.User).offset(skip).limit(limit).all()
-
-def create_user(db: Session, user: schemas.UserCreate):
-    fake_hashed_password = user.password + "notreallyhashed"
-    db_user = models.User(email=user.email, hashed_password = fake_hashed_password)
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
-
-def get_items(db: Session, skip: int=0, limit: int=100):
-    return db.query(models.Item).offset(skip).limit(limit).all()
 
 def create_user_item(db: Session, item: schemas.ItemCreate, user_id: int):
     db_item = models.Item(**item.dict(), owner_id=user_id)
@@ -32,3 +13,30 @@ def create_user_item(db: Session, item: schemas.ItemCreate, user_id: int):
     db.commit()
     db.refresh(db_item)
     return db_item
+
+def get_user_by_username(db: Session, username: str) -> Dict:
+    sql = text(f"SELECT u.user_id, u.username, u.hashed_password,r.role_name, u.is_active FROM users u " \
+               f"INNER JOIN user_mapping um " \
+               f"ON u.user_id = um.user_id " \
+               f"INNER JOIN roles r " \
+               f"ON r.role_id = um.role_id "\
+               f"WHERE u.username = '{username}'")
+    result = db.execute(sql).fetchall()[0]
+    user = {
+            "user_id": result[0],
+            "username": result[1],
+            "hashed_password": result[2],
+            "role": result[3],  
+            "is_active": result[4]
+            }
+    return schemas.User(**user)  
+
+def get_items(db: Session, type:str) -> List:
+    sql = text(f"SELECT {type} FROM Products")
+    result = db.execute(sql).fetchall()
+    if len(result) == 1:
+        items = str(result[0]).strip("()',")
+    else:
+        items: list = [str(x).strip("()',") for x in result]
+    return items
+        
