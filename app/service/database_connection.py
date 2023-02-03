@@ -43,7 +43,7 @@ def get_user_by_username(username: str) -> Dict:
         return schemas.User(**user)
 
 def get_items(type: str) -> List:
-    sql = f"SELECT {type} FROM Products"
+    sql = f"SELECT DISTINCT {type} FROM Products"
     result = execute_sql_statement(sql)
     if not result: return []
     else: return [str(x).strip("()',") for x in result]
