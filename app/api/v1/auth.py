@@ -4,9 +4,9 @@ from sqlalchemy.orm import Session
 
 from datetime import datetime, timedelta
 from ...models import schemas, models
-from ...service.controller import authenticate_user, create_access_token, get_db, get_current_active_user
+from ...service.controller import authenticate_user, create_access_token, get_db, get_current_active_user,verify_refresh_token
 
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+ACCESS_TOKEN_EXPIRE_MINUTES = 5
 REFRESH_TOKEN_EXPIRE_MINUTES = 360
 
 router = APIRouter()
@@ -33,13 +33,18 @@ async def login_for_access_token(response: Response, form_data: OAuth2PasswordRe
 
     return {"access_token": access_token,"refresh_token": refresh_token , "token_type": "Bearer"}
 
+
 @router.post('/refresh', response_model= schemas.RefreshToken)
-def refresh_access_token(response: Response, current_user: schemas.User = Depends(get_current_active_user)):
-    if not current_user.username:
-        raise HTTPException(status_code=401, detail="Unauthorized")
-    access_token = create_access_token(data = {"User": current_user.username, "Role": current_user.role}, expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-    response.set_cookie('access_token', access_token)
-    return {"access_token": access_token, "token_type": "Bearer"}
+def refresh_access_token(response: Response,refresh_token:str):
+    # Get refresh data, will return username, role to create new accesss token
+    refesh_data = verify_refresh_token(refresh_token)
+    # Create new access token using new refesh_data
+    new_access_token = create_access_token(refesh_data, expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+   
+    response.set_cookie('access_token', new_access_token)
+
+    return {"access_token": new_access_token, "token_type": "Bearer"}
+    
     
 
 @router.get('/logout', response_model= schemas.Logout)

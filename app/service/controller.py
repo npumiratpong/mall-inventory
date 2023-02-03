@@ -51,6 +51,7 @@ def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None
         expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    
     return encoded_jwt
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
@@ -77,3 +78,29 @@ async def get_current_active_user(current_user: schemas.User = Depends(get_curre
     if not current_user.is_active:
         raise HTTPException(status_code=403, detail="Inactive User")
     return current_user
+
+
+def verify_refresh_token(token: str = Depends(oauth2_scheme)):
+    credential_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"}        
+    )
+    try:
+        token_data={}
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+       
+        username:str = payload.get("User")
+        if id is None:
+            raise credential_exception
+        
+        role:str = payload.get("Role")
+        if id is None:
+            raise credential_exception
+
+        token_data['User'] = username
+        token_data['Role'] = role
+
+    except JWTError:
+        raise credential_exception
+    return token_data
