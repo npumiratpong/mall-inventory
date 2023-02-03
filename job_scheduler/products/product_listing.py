@@ -7,10 +7,11 @@ import sys
 import datetime
 import math
 
-def get_product_from_product_lists() -> None:
+def get_product_from_product_lists(max_retry:int=3) -> None:
     url = "http://27.254.66.181:8080/SMLJavaRESTService/v3/api/product"
     query_param =f"page=1&size=1"
     headers = {"GUID": "smix", "configFileName": "SMLConfigData.xml", "databaseName": "test", "provider": "data"}
+    retry = 0
     try:
         reponse = requests.get(url=f"{url}?{query_param}", headers=headers)
         if reponse.status_code == 200:
@@ -35,7 +36,13 @@ def get_product_from_product_lists() -> None:
                             product['barcode'] = str(barcodes).strip("[\'\']").replace("\', '", ", ")
                             product['created_when'] = created_time
                             products_list.append(product)
-                    insert_product(products_list)
+                        row_affected = insert_product(products_list)
+                        print (f"Number of row_affected : {row_affected} rows")
+                    elif 400 <= reponse.status_code < 500:
+                        print (f"Error occured when calling API endpoint {url} with body {reponse.text}")
+                    else:
+                        print (f"Connection Error {reponse.text}")
+                    
         elif 400 <= reponse.status_code < 500:
             print (f"Error occured when calling API endpoint {url} with body {reponse.text}")
         else:
