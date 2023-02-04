@@ -2,23 +2,13 @@ from sqlalchemy.orm import Session
 from typing import Dict, List, Optional, Union
 
 from .database import engine
-
-from ..models import models
-from ..models import schemas
+from models.schemas import User
 
 def execute_sql_statement(sql_statement, params=None):
     with engine.connect() as conn:
         result = conn.exec_driver_sql(sql_statement, parameters=params).fetchall()
     return result
     
-
-def create_user_item(db: Session, item: schemas.ItemCreate, user_id: int):
-    db_item = models.Item(**item.dict(), owner_id=user_id)
-    db.add(db_item)
-    db.commit()
-    db.refresh(db_item)
-    return db_item
-
 
 def get_user_by_username(username: str) -> Dict:
     sql =f"SELECT u.user_id, u.username, u.hashed_password,r.role_name, u.is_active FROM users u " \
@@ -40,10 +30,23 @@ def get_user_by_username(username: str) -> Dict:
                 "hashed_password": result[0][2],
                 "role": result[0][3],
                 "is_active": result[0][4]}    
-        return schemas.User(**user)
+        return User(**user)
 
-def get_items(type: str) -> List:
+def get_all_items(type: str) -> List:
     sql = f"SELECT DISTINCT {type} FROM Products"
-    result = execute_sql_statement(sql)
-    if not result: return []
-    else: return [str(x).strip("()',") for x in result]
+    response = execute_sql_statement(sql)
+    if not response: return []
+    else: return [str(x).strip("()',") for x in response]
+
+def get_product_id(barcode_val:Union[int, str] = None, product_name_val:str =None):
+    sql = f"SELECT product_id from Products"
+    where = []
+    if barcode_val is not None:
+        where.append(f"barcode='{barcode_val}'")
+    if product_name_val is not None:
+        where.append(f"product_name='{product_name_val}'")
+    if where:
+        sql = "{} WHERE {}".format(sql, " AND ".join(v for v in where))
+    response = execute_sql_statement(sql)[0]
+    if not response: return []
+    else: return [x for x in response]

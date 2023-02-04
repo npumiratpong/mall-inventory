@@ -3,10 +3,10 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from datetime import datetime, timedelta
-from ...models import schemas, models
-from ...service.controller import authenticate_user, create_access_token, get_db, get_current_active_user,verify_refresh_token
+from models import schemas
+from service.controller import authenticate_user, create_access_token, get_db, get_current_active_user,verify_refresh_token
 
-ACCESS_TOKEN_EXPIRE_MINUTES = 5
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
 REFRESH_TOKEN_EXPIRE_MINUTES = 360
 
 router = APIRouter()
@@ -35,7 +35,7 @@ async def login_for_access_token(response: Response, form_data: OAuth2PasswordRe
 
 
 @router.post('/refresh', response_model= schemas.RefreshToken)
-def refresh_access_token(response: Response,refresh_token:str):
+def refresh_access_token(response: Response, refresh_token:str):
     # Get refresh data, will return username, role to create new accesss token
     refesh_data = verify_refresh_token(refresh_token)
     # Create new access token using new refesh_data

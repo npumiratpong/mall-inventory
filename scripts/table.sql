@@ -17,7 +17,7 @@ create table users(
 show columns from roles;
 
 
-
+### Create Mock Users
 insert into users (username, hashed_password, first_name, last_name, email, created_when, modified_when, is_active)
 values ('johndoe', '$2y$10$Oii4iPEwk8MIQ2wp0WOdq.7XGMneEUOMUtq6aj/lp7rPQnTJLZVZy', 'John', 'Doe', 'johndoe@example.com', now(), now(), True)
 
@@ -26,6 +26,17 @@ values ('alice', '$2y$10$Oii4iPEwk8MIQ2wp0WOdq.7XGMneEUOMUtq6aj/lp7rPQnTJLZVZy',
 
 insert into users (username, hashed_password, first_name, last_name, email, created_when, modified_when, is_active)
 values ('jason', '$2y$10$Oii4iPEwk8MIQ2wp0WOdq.7XGMneEUOMUtq6aj/lp7rPQnTJLZVZy', 'jason', 'Johnson', 'jason@example.com', now(), now(), False)
+
+insert into users (username, hashed_password, first_name, last_name, email, created_when, modified_when, is_active)
+values ('elena', '$2y$10$Oii4iPEwk8MIQ2wp0WOdq.7XGMneEUOMUtq6aj/lp7rPQnTJLZVZy', 'Elena', 'Johnson', 'elena@example.com', now(), now(), True)
+
+insert into users (username, hashed_password, first_name, last_name, email, created_when, modified_when, is_active)
+values ('hector', '$2y$10$Oii4iPEwk8MIQ2wp0WOdq.7XGMneEUOMUtq6aj/lp7rPQnTJLZVZy', 'Hector', 'Johnson', 'hector@example.com', now(), now(), True)
+
+insert into users (username, hashed_password, first_name, last_name, email, created_when, modified_when, is_active)
+values ('william', '$2y$10$Oii4iPEwk8MIQ2wp0WOdq.7XGMneEUOMUtq6aj/lp7rPQnTJLZVZy', 'William', 'Johnson', 'william@example.com', now(), now(), True)
+
+
 
 select * from users
 
@@ -38,9 +49,15 @@ create table roles (
 	
 );
 
-insert into roles (role_name) values ('admin'), ('user')
+ALTER TABLE roles AUTO_INCREMENT = 1
+
+
+#Create User Roles
+insert into roles (role_name) values ('admin'), ('sale_store'), ('sale_admin_store'), ('sale_shopping_mall'), ('sale_admin_shopping_mall')
 
 select * from roles 
+
+delete from roles r 
 
 
 ## Mapping between user and roles 
@@ -56,13 +73,23 @@ create table user_mapping (
        		REFERENCES roles(role_id)
 );
 
+#Create Mock User Mapping between role_id and user_id 
 insert into user_mapping (user_id, role_id, created_when, modified_when) values (1, 1, NOW(), now())
 
 insert into user_mapping (user_id, role_id, created_when, modified_when) values (2, 2, NOW(), now())
 
 insert into user_mapping (user_id, role_id, created_when, modified_when) values (3, 1, NOW(), now())
 
+insert into user_mapping (user_id, role_id, created_when, modified_when) values (4, 3, NOW(), now())
+
+insert into user_mapping (user_id, role_id, created_when, modified_when) values (5, 4, NOW(), now())
+
+insert into user_mapping (user_id, role_id, created_when, modified_when) values (6, 5, NOW(), now())
+
+
 select * from user_mapping 
+
+delete from user_mapping 
 
 
 ## Static table to store product list, inserted daily 
@@ -82,6 +109,7 @@ delete from products
 
 ALTER TABLE products  MODIFY COLUMN product_id VARCHAR(50)
 
+#insert Mock Product data
 insert into products (product_id, product_name, barcode, created_when) values ('CEB-5005-A3', 'หนังสือ', '1111122222333', NOW()), ('BDW-5005-B4', 'ปากกา', '1111122222444', NOW()), ('ASC-5005-A3', 'ดินสอ', '1111122222555', NOW())
 
 select * from products p 
@@ -118,10 +146,8 @@ drop table product_price
 select * from product_price pp 
 
 
+delete from products 
 
-select u.user_id, u.username, u.hashed_password, r.role_name, u.is_active from users u 
-inner join user_mapping um 
-on u.user_id = um.user_id 
-inner join roles r 
-on r.role_id = um.role_id 
-where u.username = 'johndoe'
+select * from products p
+
+select count(*) from products p 
