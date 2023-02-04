@@ -62,6 +62,7 @@ def get_product_info(product_id: int, user:Dict) -> Dict:
             try:
                 if barcodes:
                     for barcode in barcodes:
+                        """ Tomorrow continue at price and properties date: 05/02/2023"""
                         if barcode['unit_code'] == unit['unit_code']:
                             re_construct['price_info'] = get_price(barcode['unit_code'], data['price_formulas']) if user.role not in ['sale_shopping_mall', 'sale_admin_shopping_mall'] \
                                                                                                             and data['price_formulas'] \
