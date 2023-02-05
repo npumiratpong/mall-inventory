@@ -42,11 +42,11 @@ def get_product_id(barcode_val:Union[int, str] = None, product_name_val:str =Non
     sql = f"SELECT product_id from Products"
     where = []
     if barcode_val is not None:
-        where.append(f"barcode='{barcode_val}'")
+        where.append(f"barcode LIKE '%%{barcode_val}%%'")
     if product_name_val is not None:
-        where.append(f"product_name='{product_name_val}'")
+        where.append(f"product_name LIKE '%%{product_name_val}%%'")
     if where:
         sql = "{} WHERE {}".format(sql, " AND ".join(v for v in where))
-    response = execute_sql_statement(sql)[0]
-    if not response: return []
-    else: return [x for x in response]
+    response = execute_sql_statement(sql)
+    if not response: return None
+    else: return [x for x in response[0]]
