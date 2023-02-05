@@ -7,9 +7,9 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
 
-from ..models import models, schemas
+from models import schemas
 
-from ..service import database_connection
+from service import database_connection
 
 SECRET_KEY = "4757a5228c03cece3cfd8ce77e05e1769597b94bf416d934120bb0720c91f3ba"
 ALGORITHM = "HS256"

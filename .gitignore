@@ -7,7 +7,10 @@ app/models/__pycache__/*
 
 job_scheduler/__pycache__/*
 job_scheduler/products/__pycache__/*
-job_scheduler/service/__pycache__/*
-job_scheduler/service/__pycache__/*
+job_scheduler/services/__pycache__/*
+job_scheduler/services/__pycache__/*
 job_scheduler/models/__pycache__/*
 job_scheduler/models/__pycache__/*
+
+.gitignore
+
