@@ -6,34 +6,33 @@ from pydantic import parse_obj_as
 
 from api.v1.get_item_properties import get_product_info
 from service.controller import get_db,  get_current_active_user
-from service.database_connection import get_all_items, get_product_id
+from service.database_connection import get_all_items, get_product_by_search_term
 from models.schemas import ProductInformation, User
 
 router = APIRouter()
 
 @router.get('')
-def search_product(barcode:str = None, product_name:str = None, product_id:str = None, current_user: User = Depends(get_current_active_user)):
-    print (f"This is barcode: {barcode}")
-    print (f"This is product_id: {product_id}")
-    print (f"This is product_name: {product_name}")
+def search_product(search_term:str = None, limit:int = 20, current_user: User = Depends(get_current_active_user)):
+    print (f"This is search_term: {search_term}")
+    print (f"This is limit: {limit}")
     print (f"This is role: {current_user.role}")
     response = None
-    if product_id:
-        print (product_id)
-        response = get_product_info(product_id=product_id.strip(), 
-                                    user=current_user)
-    else:
-        if barcode is not None: barcode = barcode.strip()
-        if product_name is not None: product_name = product_name.strip()
-        print(f"This is barcode {barcode} and product_name {product_name}")
-        ids = get_product_id(barcode, product_name)
+    response_bulk = []
+    if search_term:
+        search_term = search_term.strip()
+        print(f"This is search_term {search_term}")
+        ids = get_product_by_search_term(limit, search_term)
         if ids:
             for id in ids:
-                print(f"This is ids {ids}")
-                response = get_product_info(product_id=id,
+                responses = get_product_info(product_id=id,
                                             user=current_user)
+                if isinstance(responses, list):
+                    for response in responses:
+                        response_bulk.append(response)
+                else:
+                    continue
                 
-    return {'products': response}
+    return {'products': response_bulk}
 
 @router.get('/pre-search/{type}')
 def get_product_from_product_lists(type:str, current_user: User = Depends(get_current_active_user)) -> Dict:

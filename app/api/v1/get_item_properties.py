@@ -45,14 +45,12 @@ def get_price(price:str, price_unit:str) -> str:
 
 def determine_price(units:List, price_formulas:List, role:str) -> Dict:
     price = {}
-    print (f"Hello you are in determine price with role {role}")
     if not price_formulas and role not in ['sale_store', 'sale_admin_store']:
         return 0, None
     if role in ['sale_store', 'sale_admin_store']:
         pass
     else:
         if price_formulas:
-            print (f"Hello you are in determine price with role {role} in TOP first else")
             for price_dict in price_formulas:
                 if price_dict.get("unit_code") == "โหล":
                     price = price_dict.get("price_1")

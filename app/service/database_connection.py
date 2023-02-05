@@ -54,3 +54,19 @@ def get_product_id(barcode_val:Union[int, str] = None, product_name_val:str =Non
         print(f"This is reponse after executed {response}")
     if not response: return response
     else: return [x for x in response[0]]
+
+def get_product_by_search_term(limit:int, search_term:Union[int, str] = None):
+    sql = f"SELECT product_id from Products"
+    where = []
+    response = None
+    
+    where.append(f"product_id LIKE '%%{search_term}%%'")
+    where.append(f"barcode LIKE '%%{search_term}%%'")
+    where.append(f"product_name LIKE '%%{search_term}%%'")
+    if where:
+        sql = "{} WHERE {} LIMIT {}".format(sql, " OR ".join(v for v in where), limit)
+        response = execute_sql_statement(sql)
+        # print(f"This is reponse after executed {response}")
+    if not response: return response
+    else:
+        return [str(x).strip("()',") for x in response]
