@@ -53,54 +53,40 @@ def determine_price(units:List, price_formulas:List, role:str) -> Dict:
     else:
         if price_formulas:
             print (f"Hello you are in determine price with role {role} in TOP first else")
-            count = 0
-            while True:
-                # print (f"Hello this is price_formulas {price_formulas}")
-                if str(price_formulas[count]['unit_code']).strip().startswith("โหล") or price_formulas[count]['unit_code'] == 'โหล':
-                    print (f"Hello you are in determine price with  role {role} in last else in first if")
-                    from_unit = price_formulas[count]['unit_code']
-                    if price_formulas[count]['price_1'] is not None and len(price_formulas[count]['price_1']) > 0:
-                        final_price = price_formulas[count]['price_1']
-                        print (f"Hello you are in determine price with  role {role} in last else in first if of if 1")
-                elif str(price_formulas[count]['unit_code']).strip().startswith("ชิ้น") or price_formulas[count]['unit_code'] == 'ชิ้น':
-                    from_unit = price_formulas[count]['unit_code']
-                    print (f"Hello you are in determine price with role {role} in last else in elif 2")
-                    if price_formulas[count]['price_2'] is not None and len(price_formulas[count]['price_2']) > 0:
-                        print (f"Hello you are in determine price with role {role} in last else in elif 2 first if")
-                        final_price = price_formulas[count]['price_2']
-                    elif price_formulas[count]['price_0'] is not None and len(price_formulas[count]['price_0']) > 0:
-                        print (f"Hello you are in determine price with role {role} in last else in elif 2 elif 1")
-                        final_price = price_formulas[count]['price_0']
-                    elif price_formulas[count]['price_1'] is not None and len(price_formulas[count]['price_1']) > 0:
-                        final_price = price_formulas[count]['price_1']
-                elif str(price_formulas[count]['unit_code']).strip().startswith("แพ็ค") or price_formulas[count]['unit_code'] == 'แพ็ค':
-                    from_unit = price_formulas[count]['unit_code']
-                    print (f"Hello you are in determine price with role {role} in last else in elif 3")
-                    if price_formulas[count]['price_3'] is not None and len(price_formulas[count]['price_3']) > 0:
-                        final_price = price_formulas[count]['price_3']
-
-                if count == len(price_formulas):
-                    final_price = 0.00
-                    from_unit = None
-                if final_price:
-                    print (f"This is FINAL PRICE when going out {final_price}")
-                    return final_price, from_unit
-                count = count + 1 if count < 3 else 0 
+            for price_dict in price_formulas:
+                if price_dict.get("unit_code") == "โหล":
+                    price = price_dict.get("price_1")
+                    if price:
+                        return price, price_dict.get("unit_code")
+            for price_dict in price_formulas:
+                if price_dict.get("unit_code") == "ชิ้น":
+                    price = price_dict.get("price_2")
+                    if price:
+                        return price, price_dict.get("unit_code")
+                    price = price_dict.get("price_0")
+                    if price:
+                        return price, price_dict.get("unit_code")
+            for price_dict in price_formulas:
+                if price_dict.get("unit_code") == "แพ็ค":
+                    price = price_dict.get("price_3")
+                    if price:
+                        return price, price_dict.get("unit_code")
+            return 0, None
 
 def record_mapping(pre_record:Dict, barcode:str, price:float=0) -> Dict:
     re_construct = {}
-    re_construct['product_id'] = pre_record.get('code', None)
-    re_construct['image_guid'] = pre_record.get('images', None)
-    re_construct['name'] = pre_record.get('name', None)
-    re_construct['barcode'] = barcode
-    re_construct['properties'] = pre_record.get('properties', None)
-    re_construct['unit_standard'] = pre_record.get('unit_standard', None)
-    re_construct['balance_qty'] = pre_record.get('balance_qty', None)
-    re_construct['book_out_qty'] = pre_record.get('book_out_qty', None)
-    re_construct['accrued_out_qty'] = pre_record.get('accrued_out_qty', None)
+    re_construct['รหัส'] = pre_record.get('code', None)
+    re_construct['รูป'] = pre_record.get('images', None)
+    re_construct['บาร์โค้ด'] = barcode
+    re_construct['ชื่อสินค้า'] = pre_record.get('name', None)
+    re_construct['รายละเอียด'] = pre_record.get('properties', None)
+    re_construct['หน่วยนับยอดคงเหลือ'] = pre_record.get('unit_standard', None)
+    re_construct['ยอดคงเหลือ (สุทธิ)'] = pre_record.get('balance_qty', None)
+    re_construct['ยอดค้างจอง'] = pre_record.get('book_out_qty', None)
+    re_construct['ยอดค้างส่ง'] = pre_record.get('accrued_out_qty', None)
     re_construct['item_type'] = pre_record.get('item_type', None)
-    re_construct['discount'] = 0
-    re_construct['price'] = price
+    re_construct['ส่วนลด'] = 0
+    re_construct['ราคา'] = price
     return re_construct         
 
 def get_product_info(product_id: int, user:Dict) -> Dict:
