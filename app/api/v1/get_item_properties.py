@@ -35,56 +35,59 @@ def get_barcode_unit(barcode:str, barcode_unit:str) -> Dict:
         bar += ' (' + barcode_unit + ')'
     return bar if bar else None
 
-def get_price(price:str, price_unit:str) -> Dict:
+def get_price(price:str, price_unit:str) -> str:
     pric = ''
     if price:
         pric += price
     if price_unit:
         pric += ' / ' + price_unit
-    return pric if pric else None
+    return pric if pric else 0
 
 def determine_price(units:List, price_formulas:List, role:str) -> Dict:
     price = {}
     print (f"Hello you are in determine price with role {role}")
     if not price_formulas and role not in ['sale_store', 'sale_admin_store']:
-        return 0
+        return 0, None
     if role in ['sale_store', 'sale_admin_store']:
         pass
     else:
         if price_formulas:
-            print (f"Hello you are in determine price with role {role} in last else")
+            print (f"Hello you are in determine price with role {role} in TOP first else")
             count = 0
             while True:
+                # print (f"Hello this is price_formulas {price_formulas}")
                 if str(price_formulas[count]['unit_code']).strip().startswith("โหล") or price_formulas[count]['unit_code'] == 'โหล':
-                    price['from_unit'] = price_formulas[count]['unit_code']
+                    print (f"Hello you are in determine price with  role {role} in last else in first if")
+                    from_unit = price_formulas[count]['unit_code']
                     if price_formulas[count]['price_1'] is not None and len(price_formulas[count]['price_1']) > 0:
-                        print (f"Hello you are in determine price with role {role} in last else in first if")
-                        price['price'] = price_formulas[count]['price_1']
+                        final_price = price_formulas[count]['price_1']
+                        print (f"Hello you are in determine price with  role {role} in last else in first if of if 1")
                 elif str(price_formulas[count]['unit_code']).strip().startswith("ชิ้น") or price_formulas[count]['unit_code'] == 'ชิ้น':
-                    price['from_unit'] = price_formulas[count]['unit_code']
+                    from_unit = price_formulas[count]['unit_code']
                     print (f"Hello you are in determine price with role {role} in last else in elif 2")
                     if price_formulas[count]['price_2'] is not None and len(price_formulas[count]['price_2']) > 0:
                         print (f"Hello you are in determine price with role {role} in last else in elif 2 first if")
-                        price['price'] = price_formulas[count]['price_2']
+                        final_price = price_formulas[count]['price_2']
                     elif price_formulas[count]['price_0'] is not None and len(price_formulas[count]['price_0']) > 0:
                         print (f"Hello you are in determine price with role {role} in last else in elif 2 elif 1")
-                        price['price'] = price_formulas[count]['price_0']
+                        final_price = price_formulas[count]['price_0']
                     elif price_formulas[count]['price_1'] is not None and len(price_formulas[count]['price_1']) > 0:
-                        price['price'] = price_formulas[count]['price_1']
+                        final_price = price_formulas[count]['price_1']
                 elif str(price_formulas[count]['unit_code']).strip().startswith("แพ็ค") or price_formulas[count]['unit_code'] == 'แพ็ค':
-                    price['from_unit'] = price_formulas[count]['unit_code']
+                    from_unit = price_formulas[count]['unit_code']
                     print (f"Hello you are in determine price with role {role} in last else in elif 3")
                     if price_formulas[count]['price_3'] is not None and len(price_formulas[count]['price_3']) > 0:
-                        price['price'] = price_formulas[count]['price_3']
+                        final_price = price_formulas[count]['price_3']
 
                 if count == len(price_formulas):
-                    price['price'] = 0.00
-                if price:
-                    print (f"This is FINAL PRICE when going out {price}")
-                    return price
+                    final_price = 0.00
+                    from_unit = None
+                if final_price:
+                    print (f"This is FINAL PRICE when going out {final_price}")
+                    return final_price, from_unit
                 count = count + 1 if count < 3 else 0 
 
-def record_mapping(pre_record:Dict, barcode:str, price:str=None) -> Dict:
+def record_mapping(pre_record:Dict, barcode:str, price:float=0) -> Dict:
     re_construct = {}
     re_construct['product_id'] = pre_record.get('code', None)
     re_construct['image_guid'] = pre_record.get('images', None)
@@ -125,27 +128,29 @@ def get_product_info(product_id: int, user:Dict) -> Dict:
         pre_record['item_type'] = data.get('item_type', None)
         pre_record['properties'] = properties
 
-        # print (f"This is pre-re =============>>>  {pre_record}  <=====")
         if barcodes:
             for barcode in barcodes:
                 for unit in data['units']:
                     if barcode['unit_code'] is None or len(barcode['unit_code']) == 0:
                         barcode_data = get_barcode_unit(barcode['barcode'], barcode['unit_code'])
-                        pre_record['price'] = determine_price(data['units'], pre_record['price_formulas'], user.role)
-                        price = get_price(pre_record['price']['price'], pre_record['price']['from_unit'])
-                        print (f"This is what price get you {pre_record['price']}")
+                        _price, price_unit = determine_price(data['units'], pre_record['price_formulas'], user.role)
+                        price = get_price(_price, price_unit)
                         record = record_mapping(pre_record, barcode_data, price)
                         break                        
                     else:
                         if barcode['unit_code'] == unit['unit_code']:
                             barcode_data = get_barcode_unit(barcode['barcode'], barcode['unit_code'])
-                            record = record_mapping(pre_record, barcode_data)
+                            _price, price_unit = determine_price(data['units'], pre_record['price_formulas'], user.role)
+                            price = get_price(_price, price_unit)
+                            record = record_mapping(pre_record, barcode_data, price)
                             break
                 records.append(record)   
         else:
             for unit in data['units']:
                 if unit['unit_code'] == pre_record['unit_standard']:
-                    record = record_mapping(pre_record, None)
+                    _price, price_unit = determine_price(data['units'], pre_record['price_formulas'], user.role)
+                    price = get_price(_price, price_unit)
+                    record = record_mapping(pre_record, None, price)
                     records.append(record)
                     break
 
@@ -154,7 +159,7 @@ def get_product_info(product_id: int, user:Dict) -> Dict:
     else:
         print (f"Nothing in Data from response API {data}")
 
-    print (f"This is appending record {records}")
+    # print (f"This is appending record {records}")
     
     return records
 
