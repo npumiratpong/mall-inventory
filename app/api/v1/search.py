@@ -14,6 +14,7 @@ router = APIRouter()
 @router.get('')
 def search_product(barcode:str = None, product_name:str = None, product_id:str = None, current_user: User = Depends(get_current_active_user)):
     print (f"This is barcode: {barcode}")
+    print (f"This is product_id: {product_id}")
     print (f"This is product_name: {product_name}")
     print (f"This is role: {current_user.role}")
     response = None
@@ -24,9 +25,11 @@ def search_product(barcode:str = None, product_name:str = None, product_id:str =
     else:
         if barcode is not None: barcode = barcode.strip()
         if product_name is not None: product_name = product_name.strip()
+        print(f"This is barcode {barcode} and product_name {product_name}")
         ids = get_product_id(barcode, product_name)
         if ids:
             for id in ids:
+                print(f"This is ids {ids}")
                 response = get_product_info(product_id=id,
                                             user=current_user)
                 

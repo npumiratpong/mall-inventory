@@ -35,7 +35,7 @@ async def db_session_middleware(request: Request, call_next):
     return response
 
 app.include_router(auth.router, tags=['auth'], prefix='/api/v1')
-app.include_router(search.router, tags=['search'], prefix='/api/search')
+app.include_router(search.router, tags=['search'], prefix='/api/v1/search')
 
 @app.get("/users/{username}", response_model=schemas.User)
 def get_user_in_db(username: str = Depends(get_current_active_user), db: Session = Depends(get_db)):

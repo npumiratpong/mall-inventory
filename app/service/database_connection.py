@@ -34,19 +34,23 @@ def get_user_by_username(username: str) -> Dict:
 
 def get_all_items(type: str) -> List:
     sql = f"SELECT DISTINCT {type} FROM Products"
-    response = execute_sql_statement(sql)
+    if type:
+        response = execute_sql_statement(sql)
     if not response: return []
     else: return [str(x).strip("()',") for x in response]
 
 def get_product_id(barcode_val:Union[int, str] = None, product_name_val:str =None):
     sql = f"SELECT product_id from Products"
     where = []
-    if barcode_val is not None:
-        where.append(f"barcode LIKE '%%{barcode_val}%%'")
-    if product_name_val is not None:
-        where.append(f"product_name LIKE '%%{product_name_val}%%'")
-    if where:
-        sql = "{} WHERE {}".format(sql, " AND ".join(v for v in where))
-    response = execute_sql_statement(sql)
-    if not response: return None
+    response = None
+    if barcode_val or product_name_val:
+        if barcode_val is not None:
+            where.append(f"barcode LIKE '%%{barcode_val}%%'")
+        if product_name_val is not None:
+            where.append(f"product_name='{product_name_val}'")
+        if where:
+            sql = "{} WHERE {}".format(sql, " AND ".join(v for v in where))
+        response = execute_sql_statement(sql)
+        print(f"This is reponse after executed {response}")
+    if not response: return response
     else: return [x for x in response[0]]
