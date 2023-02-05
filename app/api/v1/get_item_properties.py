@@ -145,8 +145,6 @@ def get_product_info(product_id: int, user:Dict) -> Dict:
     else:
         print (f"Nothing in Data from response API {data}")
 
-    # print (f"This is appending record {records}")
-    
     return records
 
 def get_image_url(image_guid:str) -> None:
