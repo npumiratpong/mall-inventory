@@ -7,14 +7,15 @@ from pydantic import parse_obj_as
 from api.v1.get_item_properties import get_product_info
 from service.controller import get_db,  get_current_active_user
 from service.database_connection import get_all_items, get_product_by_search_term
-from models.schemas import ProductResponse, User
+from models.schemas import User, ProductModel
 
 router = APIRouter()
 
-@router.get('', response_model=ProductResponse)
+@router.get('', response_model=ProductModel)
 def search_product(search_term:str = None, limit:int = 20, current_user: User = Depends(get_current_active_user)):
     response = None
     response_bulk = []
+    products = {}
     if search_term:
         search_term = search_term.strip()
         ids = get_product_by_search_term(limit, search_term)
@@ -27,8 +28,8 @@ def search_product(search_term:str = None, limit:int = 20, current_user: User = 
                         response_bulk.append(response)
                 else:
                     continue
-    print (type(response_bulk))
-    return {'products': response_bulk}
+    products['products'] = response_bulk
+    return products
 
 @router.get('/pre-search/{type}')
 def get_product_from_product_lists(type:str, current_user: User = Depends(get_current_active_user)) -> Dict:

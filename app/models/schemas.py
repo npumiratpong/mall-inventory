@@ -1,4 +1,4 @@
-from typing import Union, Optional, List
+from typing import Union, Optional, List, Dict
 from pydantic import BaseModel
 from datetime import datetime
 from pydantic import BaseModel, Field
@@ -71,8 +71,7 @@ class ProductBaseModel(BaseModel):
     price: str = 0
     total_price: float = 0
 
-class ProductResponse(BaseModel):
-    products: List[ProductBaseModel] = []
+ProductList = List[ProductBaseModel]
 
-    class Config:
-        orm_mode = True
+class ProductModel(BaseModel):
+    products: ProductList

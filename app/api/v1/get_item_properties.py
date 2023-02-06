@@ -2,8 +2,7 @@ from typing import Optional, List, Dict
 from models.schemas import User
 import requests
 import json
-import datetime
-import math
+
 
 def get_api_response(url, headers={"GUID": "smix", "configFileName": "SMLConfigData.xml", "databaseName": "data1", "provider": "data"}, max_retry:int=3) -> Dict:
     response = requests.get(url=url, headers=headers)
