@@ -60,9 +60,9 @@ def get_product_by_search_term(limit:int, search_term:Union[int, str] = None):
     where = []
     response = None
     
-    where.append(f"product_id LIKE '%%{search_term}%%'")
-    where.append(f"barcode LIKE '%%{search_term}%%'")
-    where.append(f"product_name LIKE '%%{search_term}%%'")
+    where.append(f"product_id LIKE '{search_term}%%'")
+    where.append(f"barcode LIKE '{search_term}%%'")
+    where.append(f"product_name LIKE '{search_term}%%'")
     if where:
         sql = "{} WHERE {} LIMIT {}".format(sql, " OR ".join(v for v in where), limit)
         response = execute_sql_statement(sql)

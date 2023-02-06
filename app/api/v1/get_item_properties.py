@@ -38,7 +38,7 @@ def get_barcode_unit(barcode:str, barcode_unit:str) -> Dict:
 def get_price(price:str, price_unit:str) -> str:
     pric = ''
     if price:
-        pric += price
+        pric += str(round(float(price), 3))
     if price_unit:
         pric += ' / ' + price_unit
     return pric if pric else 0
@@ -85,6 +85,7 @@ def record_mapping(pre_record:Dict, barcode:str, price:float=0) -> Dict:
     re_construct['item_type'] = pre_record.get('item_type', None)
     re_construct['ส่วนลด'] = 0
     re_construct['ราคา'] = price
+    re_construct['ราคำสุทธิ'] = round(float(str(price).split()[0]) - float(re_construct['ส่วนลด']), 2)
     return re_construct         
 
 def get_product_info(product_id: int, user:Dict) -> Dict:

@@ -13,14 +13,10 @@ router = APIRouter()
 
 @router.get('')
 def search_product(search_term:str = None, limit:int = 20, current_user: User = Depends(get_current_active_user)):
-    print (f"This is search_term: {search_term}")
-    print (f"This is limit: {limit}")
-    print (f"This is role: {current_user.role}")
     response = None
     response_bulk = []
     if search_term:
         search_term = search_term.strip()
-        print(f"This is search_term {search_term}")
         ids = get_product_by_search_term(limit, search_term)
         if ids:
             for id in ids:
