@@ -1,5 +1,4 @@
-from fastapi import Depends, APIRouter, Response, HTTPException
-from sqlalchemy.orm import Session
+from fastapi import Depends, APIRouter, Query
 
 from typing import Dict, List
 from pydantic import parse_obj_as
@@ -12,7 +11,7 @@ from models.schemas import User, ProductModel
 router = APIRouter()
 
 @router.get('', response_model=ProductModel)
-def search_product(search_term:str = None, limit:int = 20, current_user: User = Depends(get_current_active_user)):
+def search_product(search_term:str = Query(default=None), limit:int = Query(default=20), current_user: User = Depends(get_current_active_user)):
     response = None
     response_bulk = []
     products = {}
