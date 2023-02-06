@@ -31,7 +31,7 @@ def search_product(search_term:str = None, limit:int = 20, current_user: User = 
                         response_bulk.append(response)
                 else:
                     continue
-                
+    print(response_bulk)
     return {'products': response_bulk}
 
 @router.get('/pre-search/{type}')
