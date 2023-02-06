@@ -1,5 +1,5 @@
 from typing import Optional, List, Dict
-
+from models.schemas import User
 import requests
 import json
 import datetime
@@ -73,19 +73,19 @@ def determine_price(units:List, price_formulas:List, role:str) -> Dict:
 
 def record_mapping(pre_record:Dict, barcode:str, price:float=0) -> Dict:
     re_construct = {}
-    re_construct['รหัส'] = pre_record.get('code', None)
-    re_construct['รูป'] = pre_record.get('images', None)
-    re_construct['บาร์โค้ด'] = barcode
-    re_construct['ชื่อสินค้า'] = pre_record.get('name', None)
-    re_construct['รายละเอียด'] = pre_record.get('properties', None)
-    re_construct['หน่วยนับยอดคงเหลือ'] = pre_record.get('unit_standard', None)
-    re_construct['ยอดคงเหลือ (สุทธิ)'] = pre_record.get('balance_qty', None)
-    re_construct['ยอดค้างจอง'] = pre_record.get('book_out_qty', None)
-    re_construct['ยอดค้างส่ง'] = pre_record.get('accrued_out_qty', None)
+    re_construct['images'] = pre_record.get('images', None)
+    re_construct['barcode'] = barcode
+    re_construct['code'] = pre_record.get('code', None)
+    re_construct['name'] = pre_record.get('name', None)
+    re_construct['properties'] = pre_record.get('properties', None)
+    re_construct['unit_standard'] = pre_record.get('unit_standard', None)
+    re_construct['balance_qty'] = pre_record.get('balance_qty', None)
+    re_construct['book_out_qty'] = pre_record.get('book_out_qty', None)
+    re_construct['accrued_out_qty'] = pre_record.get('accrued_out_qty', None)
     re_construct['item_type'] = pre_record.get('item_type', None)
-    re_construct['ส่วนลด'] = 0
-    re_construct['ราคา'] = price
-    re_construct['ราคำสุทธิ'] = round(float(str(price).split()[0]) - float(re_construct['ส่วนลด']), 2)
+    re_construct['discount'] = 0
+    re_construct['price'] = price
+    re_construct['total_price'] = round(float(str(price).split()[0]) - float(re_construct['discount']), 2)
     return re_construct         
 
 def get_product_info(product_id: int, user:Dict) -> Dict:
@@ -129,13 +129,15 @@ def get_product_info(product_id: int, user:Dict) -> Dict:
                             price = get_price(_price, price_unit)
                             record = record_mapping(pre_record, barcode_data, price)
                             break
-                records.append(record)   
+                print (record)
+                records.append(record)
         else:
             for unit in data['units']:
                 if unit['unit_code'] == pre_record['unit_standard']:
                     _price, price_unit = determine_price(data['units'], pre_record['price_formulas'], user.role)
                     price = get_price(_price, price_unit)
                     record = record_mapping(pre_record, None, price)
+                    print (record)
                     records.append(record)
                     break
 

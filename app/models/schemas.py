@@ -1,6 +1,8 @@
 from typing import Union, Optional, List
 from pydantic import BaseModel
 from datetime import datetime
+from pydantic import BaseModel, Field
+from decimal import Decimal
 
 class ItemBase(BaseModel):
     title: str
@@ -54,36 +56,23 @@ class Search(BaseModel):
 class PreSearch(BaseModel):
     items: List[str]
 
-class Barcode(BaseModel):
+class ProductBaseModel(BaseModel):
+    images: Optional[str]
     barcode: Optional[str]
-    barcode_unit: Optional[str]
-
-class ProductProperties(BaseModel):
-    name_2: Optional[str] = None
-    width_length_height: Optional[str]
-    weight: Optional[str]
-
-class ProductBase(BaseModel):
-    product_id: str
-    image_guid: Optional[str]
-    name: str
-    barcode: Barcode
-    properties: ProductProperties
+    code: Optional[str]
+    name: Optional[str]
+    properties: Optional[str]
     unit_standard: Optional[str]
-    balance_qty: Union[float, int] = None
-    book_out_qty: Union[float, int] = None
-    accrued_out_qty: Union[float, int] = None
-    item_type: Union[float, int] = None
-    # discount: Union[float, int] = None
+    balance_qty: Optional[int] = 0
+    book_out_qty: Optional[int] = 0
+    accrued_out_qty: Optional[int] = 0
+    item_type: Optional[int]
+    discount: float = 0
+    price: str = 0
+    total_price: float = 0
 
-class ProductInformation(ProductBase):
-    product_id: str
-    image_guid: Optional[str]
-    name: str
-    barcode: Barcode
-    properties: ProductProperties
-    unit_standard: Optional[str]
-    balance_qty: Union[float, int] = None
-    book_out_qty: Union[float, int] = None
-    accrued_out_qty: Union[float, int] = None
-    item_type: Union[float, int] = None
+class ProductResponse(BaseModel):
+    products: List[ProductBaseModel] = []
+
+    class Config:
+        orm_mode = True
