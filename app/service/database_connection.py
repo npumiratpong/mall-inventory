@@ -59,6 +59,7 @@ def get_product_by_search_term(limit:int, search_term:Union[int, str] = None):
     sql = f"SELECT product_id from Products"
     where = []
     response = None
+    search_term = search_term.strip()
     
     where.append(f"product_id LIKE '{search_term}%%'")
     where.append(f"barcode LIKE '{search_term}%%'")
@@ -66,7 +67,28 @@ def get_product_by_search_term(limit:int, search_term:Union[int, str] = None):
     if where:
         sql = "{} WHERE {} LIMIT {}".format(sql, " OR ".join(v for v in where), limit)
         response = execute_sql_statement(sql)
-        # print(f"This is reponse after executed {response}")
     if not response: return response
     else:
         return [str(x).strip("()',") for x in response]
+    
+def get_product_price_for_mall(product_code: Union[int, str], unit_code:str, customer_name:str):
+    if product_code: product_code = product_code.strip()
+    if customer_name: customer_name = customer_name.strip()
+    if unit_code: unit_code = unit_code.strip()
+
+    sql = f"SELECT Price FROM product_price"
+    where = []
+    response = None
+
+    where.append(f"product_id = '{product_code}'")
+    where.append(f"unit='{unit_code}'")
+    where.append(f"customer_name='{customer_name}'")
+
+    if where:
+        sql = "{} WHERE {}".format(sql, " AND ".join(v for v in where))
+        response = execute_sql_statement(sql)
+        
+    if not response: return response
+    else: return [str(x).strip("()',") for x in response]
+
+

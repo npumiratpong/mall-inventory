@@ -63,9 +63,9 @@ class ProductBaseModel(BaseModel):
     name: Optional[str]
     properties: Optional[str]
     unit_standard: Optional[str]
-    balance_qty: Optional[int] = 0
     book_out_qty: Optional[int] = 0
     accrued_out_qty: Optional[int] = 0
+    balance_qty_net: Optional[int] = 0
     item_type: Optional[int]
     discount: float = 0
     price: str = 0
