@@ -6,8 +6,8 @@ from datetime import datetime, timedelta
 from models import schemas
 from service.controller import authenticate_user, create_access_token, get_db, get_current_active_user,verify_refresh_token
 
-ACCESS_TOKEN_EXPIRE_MINUTES = 1
-REFRESH_TOKEN_EXPIRE_MINUTES = 2
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
+REFRESH_TOKEN_EXPIRE_MINUTES = 360
 
 router = APIRouter()
 
