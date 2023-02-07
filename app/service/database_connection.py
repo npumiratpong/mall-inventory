@@ -78,7 +78,7 @@ def get_product_price_for_mall(product_code: Union[int, str], unit_code:str, cus
 
     sql = f"SELECT Price FROM product_price"
     where = []
-    response = None
+    response = 0
 
     where.append(f"product_id = '{product_code}'")
     where.append(f"unit='{unit_code}'")
