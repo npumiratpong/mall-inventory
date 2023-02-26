@@ -76,19 +76,19 @@ def get_product_price_for_mall(product_code: Union[int, str], unit_code:str, cus
     if customer_name: customer_name = customer_name.strip()
     if unit_code: unit_code = unit_code.strip()
 
-    sql = f"SELECT Price FROM product_price"
+    sql = f"SELECT `{customer_name}` FROM product_price"
     where = []
     response = 0
 
-    where.append(f"product_id = '{product_code}'")
-    where.append(f"unit='{unit_code}'")
-    where.append(f"customer_name='{customer_name}'")
+    where.append(f"`Item code` = '{product_code}'")
+    where.append(f"b_unit='{unit_code}'")
 
     if where:
         sql = "{} WHERE {}".format(sql, " AND ".join(v for v in where))
         response = execute_sql_statement(sql)
-        
-    if not response: return response
-    else: return [str(x).strip("()',") for x in response]
+
+    if response: 
+        return [str(x).strip("()',") for x in response]
+    return [0]
 
 

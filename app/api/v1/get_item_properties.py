@@ -42,6 +42,7 @@ def get_price(price:str, price_unit:str) -> str:
     return pric if pric else 0
 
 def determine_price_by_store(price_formulas:List) -> Dict:
+    print (f"::: Determine Price By Store :::")
     price = {}
     if not price_formulas and user_role not in ['sale_store', 'sale_admin_store']:
         return 0, None
@@ -70,10 +71,13 @@ def determine_price_by_store(price_formulas:List) -> Dict:
             return 0, None
         
 def determin_price_by_mall(product_id:str, barcode_unit:str):
+    print (f"::: Determine Price By Mall :::")
     if '(' in barcode_unit or ')' in barcode_unit:
         barcode_unit = barcode_unit.split()[-1].strip('()')
     price = get_product_price_for_mall(product_id, barcode_unit, customer_name)[0]
-    return get_price(price, barcode_unit)
+    if price:
+        return get_price(price, barcode_unit)
+    return 0
 
 def record_mapping(pre_record:Dict, barcode:str, price_formulas:List=None) -> Dict:
     re_construct = {}
@@ -88,10 +92,10 @@ def record_mapping(pre_record:Dict, barcode:str, price_formulas:List=None) -> Di
     re_construct['balance_qty_net'] = pre_record.get('balance_qty', 0) - re_construct['book_out_qty'] - re_construct['accrued_out_qty'] 
     re_construct['item_type'] = pre_record.get('item_type', None)
     re_construct['discount'] = 0
-    re_construct['price'] = get_price(*determine_price_by_store(price_formulas)) if price_formulas and not customer_name and user_role not in ['sale_store','sale_admin_store'] \
+    re_construct['price'] = get_price(*determine_price_by_store(price_formulas)) if price_formulas and user_role not in ['sale_shopping_mall','sale_admin_shopping_mall'] \
+                                                                                    or customer_name == 'store_price' \
                                                                                  else determin_price_by_mall(re_construct['code'],
                                                                                       barcode if barcode else re_construct['unit_standard'])
-                                                                                                                                  
     re_construct['total_price'] = round(float(str(re_construct['price']).split()[0]) - float(re_construct['discount']), 2)
     return re_construct         
 

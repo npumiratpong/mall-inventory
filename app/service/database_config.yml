@@ -1,0 +1,27 @@
+DEFAULT:
+  host: 'localhost'
+  db: 'inventory'
+  username: 'root'
+  password: 'root'
+  port: 3306
+
+develop:
+  host: 'localhost'
+  db: 'inventory'
+  username: 'root'
+  password: 'root'
+  port: 3306
+
+qa:
+  host: 'localhost'
+  db: 'inventory'
+  username: 'root'
+  password: 'root'
+  port: 3306
+
+prod:
+  host: 'localhost'
+  db: 'inventory'
+  username: 'app_user'
+  password: 'Specialprojecttemp1*'
+  port: 3306

@@ -128,26 +128,44 @@ drop table customers
 
 ## Mapping table bwteen product and customer, show price for specific customer, Load data from CSV
 
-create table product_price (
-	product_id VARCHAR(50) NOT NULL, 
-	customer_id int NOT NULL ,
-	unit 	VARCHAR(20)  NULL,
-	price  float NOT NULL,
-	created_when datetime NOT NULL,
-	PRIMARY KEY(product_id, customer_id),
-	   FOREIGN KEY products(product_id)
-       REFERENCES products(product_id),
-       FOREIGN KEY (customer_id)
-       REFERENCES customers(customer_id)
-);
+CREATE TABLE product_price (
+	`Item code` VARCHAR(50) NOT NULL, 
+	b_unit VARCHAR(20)   NULL,
+	B2S float  null ,
+	OFM float null,
+	BigC float null, 
+	Lotus float null, 
+	`The Mall` float null, 
+	Amarin float null, 
+	`Se-ed` float null, 
+	`Asia Book, Watsons` float null, 
+	CJ float null
 
-drop table product_price 
+)
 
 select * from product_price pp 
 
 
 delete from products 
 
-select * from products p
+select * from products p where product_id
 
 select count(*) from products p 
+
+SELECT product_id from Products WHERE barcode LIKE '%%8%%' order by product_id asc limit 10
+
+SELECT product_id from Products where product_id like '%%CC-543-05%%' or product_name like '%%CC-543-05%%' or barcode like '%%CC-543-05%%' limit 20
+
+SELECT product_id from Products where lower(product_id) like lower('%%set%%')
+
+
+no unitcode in barcode CC-543-083
+
+ชิ้น + โหล CR-586-007
+
+barcode null แพ็ค6 3: 5069804
+
+SELECT * from Products
+
+
+ 

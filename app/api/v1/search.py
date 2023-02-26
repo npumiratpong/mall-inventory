@@ -28,7 +28,6 @@ def search_product(search_term:str = Query(default=None), limit:int = Query(defa
                         response_bulk.append(response)
                 else:
                     continue
-    print (response_bulk)
     products['products'] = response_bulk
     return products
 

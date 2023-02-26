@@ -7,6 +7,14 @@ import requests
 import json
 import datetime
 import math
+import yaml
+
+config_path = 'products/product_api.yml'
+
+with open(config_path, 'r') as file:
+    doc = yaml.load(file, Loader=yaml.FullLoader)
+
+config = doc['endpoint_prod']
 
 def transform_list2str(items, indexs, index):
     _items:list = items.get(indexs, None)
@@ -15,9 +23,9 @@ def transform_list2str(items, indexs, index):
     return None
 
 def get_product_from_product_lists(max_retry:int=3) -> None:
-    url = "http://27.254.66.181:8080/SMLJavaRESTService/v3/api/product"
+    url = config['url']
     query_param =f"page=1&size=1"
-    headers = {"GUID": "smix", "configFileName": "SMLConfigData.xml", "databaseName": "data1", "provider": "data"}
+    headers = {"GUID": config["GUID"], "configFileName": config["configFileName"], "databaseName": config["databaseName"], "provider": config["provider"]}
     try:
         reponse = requests.get(url=f"{url}?{query_param}", headers=headers)
         if reponse.status_code == 200:
@@ -47,7 +55,7 @@ def get_product_from_product_lists(max_retry:int=3) -> None:
                     else:
                         print (f"Connection Error {reponse.text}")
                 del_row_affected = delete_product(created_time)
-                print (f"Amount of item: {del_row_affected} which older that {created_time} have been removed from database")
+                print (f"Amount of item: {del_row_affected} which older than {created_time} have been removed from database")
                     
         elif 400 <= reponse.status_code < 500:
             print (f"Error occured when calling API endpoint {url} with body {reponse.text}")
