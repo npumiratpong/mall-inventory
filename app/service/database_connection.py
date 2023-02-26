@@ -87,8 +87,9 @@ def get_product_price_for_mall(product_code: Union[int, str], unit_code:str, cus
     if where:
         sql = "{} WHERE {}".format(sql, " AND ".join(v for v in where))
         response = execute_sql_statement(sql)
-        
-    if not response: return response
-    else: return [str(x).strip("()',") for x in response]
+
+    if response: 
+        return [str(x).strip("()',") for x in response]
+    return [0]
 
 

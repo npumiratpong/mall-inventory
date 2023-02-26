@@ -148,6 +148,24 @@ select * from product_price pp
 
 delete from products 
 
-select * from products p
+select * from products p where product_id
 
 select count(*) from products p 
+
+SELECT product_id from Products WHERE barcode LIKE '%%8%%' order by product_id asc limit 10
+
+SELECT product_id from Products where product_id like '%%CC-543-05%%' or product_name like '%%CC-543-05%%' or barcode like '%%CC-543-05%%' limit 20
+
+SELECT product_id from Products where lower(product_id) like lower('%%set%%')
+
+
+no unitcode in barcode CC-543-083
+
+ชิ้น + โหล CR-586-007
+
+barcode null แพ็ค6 3: 5069804
+
+SELECT * from Products
+
+
+ 
