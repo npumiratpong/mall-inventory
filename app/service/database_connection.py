@@ -76,7 +76,7 @@ def get_product_price_for_mall(product_code: Union[int, str], unit_code:str, cus
     if customer_name: customer_name = customer_name.strip()
     if unit_code: unit_code = unit_code.strip()
 
-    sql = f"SELECT {customer_name} FROM product_price"
+    sql = f"SELECT `{customer_name}` FROM product_price"
     where = []
     response = 0
 
