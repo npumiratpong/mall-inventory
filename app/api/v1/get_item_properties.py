@@ -92,7 +92,8 @@ def record_mapping(pre_record:Dict, barcode:str, price_formulas:List=None) -> Di
     re_construct['balance_qty_net'] = pre_record.get('balance_qty', 0) - re_construct['book_out_qty'] - re_construct['accrued_out_qty'] 
     re_construct['item_type'] = pre_record.get('item_type', None)
     re_construct['discount'] = 0
-    re_construct['price'] = get_price(*determine_price_by_store(price_formulas)) if price_formulas and customer_name == 'store_price' and user_role not in ['sale_shopping_mall','sale_admin_shopping_mall'] \
+    re_construct['price'] = get_price(*determine_price_by_store(price_formulas)) if price_formulas and user_role not in ['sale_shopping_mall','sale_admin_shopping_mall'] \
+                                                                                    or customer_name == 'store_price' \
                                                                                  else determin_price_by_mall(re_construct['code'],
                                                                                       barcode if barcode else re_construct['unit_standard'])
     re_construct['total_price'] = round(float(str(re_construct['price']).split()[0]) - float(re_construct['discount']), 2)
@@ -153,7 +154,6 @@ def get_product_info(product_id: int, user:Dict, cust_name:str) -> Dict:
         print (f"Product information of product id {product_id} is not found")
     else:
         print (f"Nothing in Data from response API {data}")
-    print (f"records: {records}")
     return records
 
 def get_image_url(image_guid:str) -> None:

@@ -1,0 +1,14 @@
+endpoint_develop:
+  url: "http://27.254.66.181:8080/SMLJavaRESTService/v3/api/product"
+  GUID: 'smix'
+  configFileName: 'SMLConfigData.xml'
+  databaseName: 'test1'
+  provider: data
+
+endpoint_prod:
+  url: "http://27.254.66.181:8080/SMLJavaRESTService/v3/api/product"
+  GUID: 'smix'
+  configFileName: 'SMLConfigData.xml'
+  databaseName: 'data1'
+  provider: data
+
