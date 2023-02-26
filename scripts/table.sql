@@ -128,20 +128,20 @@ drop table customers
 
 ## Mapping table bwteen product and customer, show price for specific customer, Load data from CSV
 
-create table product_price (
-	product_id VARCHAR(50) NOT NULL, 
-	customer_id int NOT NULL ,
-	unit 	VARCHAR(20)  NULL,
-	price  float NOT NULL,
-	created_when datetime NOT NULL,
-	PRIMARY KEY(product_id, customer_id),
-	   FOREIGN KEY products(product_id)
-       REFERENCES products(product_id),
-       FOREIGN KEY (customer_id)
-       REFERENCES customers(customer_id)
-);
+CREATE TABLE product_price (
+	`Item code` VARCHAR(50) NOT NULL, 
+	b_unit VARCHAR(20)   NULL,
+	B2S float  null ,
+	OFM float null,
+	BigC float null, 
+	Lotus float null, 
+	`The Mall` float null, 
+	Amarin float null, 
+	`Se-ed` float null, 
+	`Asia Book, Watsons` float null, 
+	CJ float null
 
-drop table product_price 
+)
 
 select * from product_price pp 
 
