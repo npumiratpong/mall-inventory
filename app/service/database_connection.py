@@ -33,14 +33,14 @@ def get_user_by_username(username: str) -> Dict:
         return User(**user)
 
 def get_all_items(type: str) -> List:
-    sql = f"SELECT DISTINCT {type} FROM Products"
+    sql = f"SELECT DISTINCT {type} FROM products"
     if type:
         response = execute_sql_statement(sql)
     if not response: return []
     else: return [str(x).strip("()',") for x in response]
 
 def get_product_id(barcode_val:Union[int, str] = None, product_name_val:str =None):
-    sql = f"SELECT product_id from Products"
+    sql = f"SELECT product_id from products"
     where = []
     response = None
     if barcode_val or product_name_val:
@@ -56,7 +56,7 @@ def get_product_id(barcode_val:Union[int, str] = None, product_name_val:str =Non
     else: return [x for x in response[0]]
 
 def get_product_by_search_term(limit:int, search_term:Union[int, str] = None):
-    sql = f"SELECT product_id from Products"
+    sql = f"SELECT product_id from products"
     where = []
     response = None
     search_term = search_term.strip()

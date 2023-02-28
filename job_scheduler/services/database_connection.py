@@ -30,5 +30,5 @@ def insert_product(params: List[Dict]):
     return execute_sql_statements(sql_query, params)
 
 def delete_product(params: DateTime):
-    sql = f"DELETE FROM Products WHERE created_when < '{params}'"
+    sql = f"DELETE FROM products WHERE created_when < '{params}'"
     return execute_sql_statements(sql)
