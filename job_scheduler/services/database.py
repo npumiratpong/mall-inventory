@@ -5,17 +5,20 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
 
-Base = declarative_base()
+import os
 
+env = os.environ['TYPE_ENV']
+print (env)
 
 config_path = 'services/database_config.yml'
 
 with open(config_path, 'r') as file:
     doc = yaml.load(file, Loader=yaml.FullLoader)
 
-db = doc['develop']
+db = doc[env]
 print (db)
 
+Base = declarative_base()
 SQLALCHEMY_DATABASE_URL = "mysql+pymysql://{}:{}@{}/{}".format(db['username'],
                                                                db['password'],
                                                                db['host'],

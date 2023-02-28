@@ -1,13 +1,17 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 import yaml
+import os
+
+env = os.environ['TYPE_ENV']
+print (env)
 
 config_path = 'service/database_config.yml'
 
 with open(config_path, 'r') as file:
     doc = yaml.load(file, Loader=yaml.FullLoader)
 
-db = doc['develop']
+db = doc[env]
 print (db)
 
 SQLALCHEMY_DATABASE_URL = "mysql+pymysql://{}:{}@{}/{}".format(db['username'],
