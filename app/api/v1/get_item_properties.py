@@ -111,6 +111,7 @@ def get_product_info(product_id: int, user:Dict, cust_name:str) -> Dict:
     data = response.get("data", None)
     weight = None
     width = None
+    record = {}
     records = []
     if data:
         weight = data['units'][0].get('width_length_height', None)
@@ -136,13 +137,12 @@ def get_product_info(product_id: int, user:Dict, cust_name:str) -> Dict:
                         barcode_data = get_barcode_unit(barcode['barcode'], barcode['unit_code'])
                         record = record_mapping(pre_record, barcode_data, pre_record['price_formulas'])
                         break                        
-                    else:
-                        if barcode['unit_code'] == unit['unit_code']:
-                            barcode_data = get_barcode_unit(barcode['barcode'], barcode['unit_code'])
-                            record = record_mapping(pre_record, barcode_data, pre_record['price_formulas'])
-                            break
-                print (record)
-                records.append(record)
+                    elif barcode['unit_code'] == unit['unit_code']:
+                        barcode_data = get_barcode_unit(barcode['barcode'], barcode['unit_code'])
+                        record = record_mapping(pre_record, barcode_data, pre_record['price_formulas'])
+                        break
+                if record: 
+                    records.append(record) 
         else:
             for unit in data['units']:
                 if unit['unit_code'] == pre_record['unit_standard']:
