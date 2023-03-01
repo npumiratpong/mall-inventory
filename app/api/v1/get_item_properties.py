@@ -5,7 +5,7 @@ import requests
 import json
 
 def get_api_response(url, headers={"GUID": "smix", "configFileName": "SMLConfigData.xml", "databaseName": "data1", "provider": "data"}, max_retry:int=3) -> Dict:
-    response = requests.get(url=url, headers=headers)
+    response = requests.get(url=url, headers=headers, timeout=10)
     if response.status_code == 200: body_text = json.loads(response.text)
     return body_text, response.status_code
 
