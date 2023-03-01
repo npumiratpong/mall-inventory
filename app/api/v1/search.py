@@ -1,4 +1,4 @@
-from fastapi import Depends, APIRouter, Query
+from fastapi import Depends, APIRouter, Query, HTTPException
 
 from typing import Dict, List
 from pydantic import parse_obj_as
@@ -23,11 +23,14 @@ def search_product(search_term:str = Query(default=None), limit:int = Query(defa
                 responses = get_product_info(product_id=id,
                                             user=current_user,
                                             cust_name=customer_name)
+                
                 if isinstance(responses, list):
                     for response in responses:
                         response_bulk.append(response)
                 else:
                     continue
+    if len(response_bulk) == 0:
+        raise HTTPException(status_code=404, detail="Item not found")
     products['products'] = response_bulk
     return products
 
