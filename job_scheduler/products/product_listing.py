@@ -8,13 +8,16 @@ import json
 import datetime
 import math
 import yaml
+import os
+
+env = os.environ['TYPE_ENV']
 
 config_path = 'products/product_api.yml'
 
 with open(config_path, 'r') as file:
     doc = yaml.load(file, Loader=yaml.FullLoader)
 
-config = doc['endpoint_prod']
+config = doc[env]
 
 def transform_list2str(items, indexs, index):
     _items:list = items.get(indexs, None)

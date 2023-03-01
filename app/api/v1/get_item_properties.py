@@ -3,9 +3,20 @@ from models.schemas import User
 from service.database_connection import get_product_price_for_mall
 import requests
 import json
+import yaml
+import os
 
-def get_api_response(url, headers={"GUID": "smix", "configFileName": "SMLConfigData.xml", "databaseName": "data1", "provider": "data"}, max_retry:int=3) -> Dict:
-    response = requests.get(url=url, headers=headers, timeout=10)
+env = os.environ['TYPE_ENV']
+
+config_path = 'api/v1/product_api.yml'
+
+with open(config_path, 'r') as file:
+    doc = yaml.load(file, Loader=yaml.FullLoader)
+
+config = doc[env]
+
+def get_api_response(url, headers, timeout:int=10) -> Dict:
+    response = requests.get(url=url, headers=headers, timeout=timeout)
     if response.status_code == 200: body_text = json.loads(response.text)
     return body_text, response.status_code
 
@@ -106,8 +117,12 @@ def get_product_info(product_id: int, user:Dict, cust_name:str) -> Dict:
     customer_name = cust_name
     pre_record = {}
     
-    url = f"http://27.254.66.181:8080/SMLJavaRESTService/v3/api/product/{product_id}"
-    response, status_code = get_api_response(url)
+    url = f"{config['url']}/{product_id}"
+    response, status_code = get_api_response(url,
+                                            headers={"GUID": config["GUID"], 
+                                                     "configFileName": config["configFileName"], 
+                                                     "databaseName": config["databaseName"], 
+                                                     "provider": config["provider"]})
     data = response.get("data", None)
     weight = None
     width = None
@@ -157,6 +172,6 @@ def get_product_info(product_id: int, user:Dict, cust_name:str) -> Dict:
     return records
 
 def get_image_url(image_guid:str) -> None:
-    url = f"http://27.254.66.181:8080/SMLJavaRESTService/v3/api/product/image/{image_guid}"
+    url = f"{config['url']}/image/{image_guid}"
     response, status_code = get_api_response(url)
     return response
