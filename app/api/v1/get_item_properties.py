@@ -4,7 +4,8 @@ from service.database_connection import get_product_price_for_mall
 import requests
 import json
 import yaml
-import os
+import time
+import os, sys
 
 env = os.environ['TYPE_ENV']
 
@@ -15,10 +16,31 @@ with open(config_path, 'r') as file:
 
 config = doc[env]
 
-def get_api_response(url, headers, timeout:int=10) -> Dict:
-    response = requests.get(url=url, headers=headers, timeout=timeout)
-    if response.status_code == 200: body_text = json.loads(response.text)
-    return body_text, response.status_code
+def get_api_response(url, headers, timeout:int=10, retry_max=3) -> Dict:
+    body_text = {}
+    response_code = -1
+    retries = 0
+    success = False
+    while not success and retries < retry_max:
+        try:
+            response = requests.get(url=url, headers=headers, timeout=timeout)
+            success = True
+            if response.status_code == 200: 
+                body_text = json.loads(response.text)
+                response_code = response.status_code
+        except requests.exceptions.Timeout as ex_timeout:
+            wait = retries * 2
+            print ("Error Timeout! as {} Waiting {} secs and re-trying...".format(ex_timeout, wait))
+            sys.stdout.flush()
+            time.sleep(wait)
+            retries += 1
+        except requests.exceptions.TooManyRedirects as too_many:
+            print ("Error Too Many Redirect as {}".format(too_many))
+        except requests.exceptions.RequestException as e:
+            # catastrophic error. bail.
+            raise SystemExit(e)
+        
+    return body_text, response_code
 
 def transform_list2str(items, indexs, index) -> str:
     _items:list = items.get(indexs, None)
@@ -122,7 +144,9 @@ def get_product_info(product_id: int, user:Dict, cust_name:str) -> Dict:
                                             headers={"GUID": config["GUID"], 
                                                      "configFileName": config["configFileName"], 
                                                      "databaseName": config["databaseName"], 
-                                                     "provider": config["provider"]})
+                                                     "provider": config["provider"]},
+                                            timeout=5,
+                                            retry_max=2)
     data = response.get("data", None)
     weight = None
     width = None
