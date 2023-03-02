@@ -52,8 +52,8 @@ def get_price(price:str, price_unit:str) -> str:
         pric += ' / ' + price_unit
     return pric if pric else 0
 
-def determine_price_by_store(price_formulas:List) -> Dict:
-    print (f"::: Determine Price By Store :::")
+def determine_price_by_store(price_formulas:List, product_id:str) -> Dict:
+    print (f"::: Determine Price By Store of prouct ID: {product_id}:::")
     price = {}
     if not price_formulas and user_role not in ['sale_store', 'sale_admin_store']:
         return 0, None
@@ -82,7 +82,7 @@ def determine_price_by_store(price_formulas:List) -> Dict:
             return 0, None
         
 def determin_price_by_mall(product_id:str, barcode_unit:str):
-    print (f"::: Determine Price By Mall :::")
+    print (f"::: Determine Price By Mall of prouct ID: {product_id}:::")
     if '(' in barcode_unit or ')' in barcode_unit:
         barcode_unit = barcode_unit.split()[-1].strip('()')
     price = get_product_price_for_mall(product_id, barcode_unit, customer_name)[0]
@@ -103,7 +103,7 @@ def record_mapping(pre_record:Dict, barcode:str, price_formulas:List=None) -> Di
     re_construct['balance_qty_net'] = pre_record.get('balance_qty', 0) - re_construct['book_out_qty'] - re_construct['accrued_out_qty'] 
     re_construct['item_type'] = pre_record.get('item_type', None)
     re_construct['discount'] = 0
-    re_construct['price'] = get_price(*determine_price_by_store(price_formulas)) if price_formulas and user_role not in ['sale_shopping_mall','sale_admin_shopping_mall'] \
+    re_construct['price'] = get_price(*determine_price_by_store(price_formulas, re_construct['code'])) if price_formulas and user_role not in ['sale_shopping_mall','sale_admin_shopping_mall'] \
                                                                                     or customer_name == 'store_price' \
                                                                                  else determin_price_by_mall(re_construct['code'],
                                                                                       barcode if barcode else re_construct['unit_standard'])
