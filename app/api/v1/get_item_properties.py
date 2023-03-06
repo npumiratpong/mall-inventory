@@ -117,7 +117,6 @@ def finalize_price(price_formulas:List, code:str, barcode:str, unit_standard:str
         print (f"::: Price: {price} from Determine Price By Mall of prouct ID: {code} by customer : {customer_name}:::")
     return price
 
-
 def record_mapping(pre_record:Dict, barcode:str, price_formulas:List, user_role:str, customer_name:str) -> Dict:
     re_construct = {}
     re_construct['images'] = pre_record.get('images', None)
