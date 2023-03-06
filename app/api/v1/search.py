@@ -11,13 +11,13 @@ from models.schemas import User, ProductModel
 router = APIRouter()
 
 @router.get('', response_model=ProductModel)
-def search_product(search_term:str = Query(default=None), limit:int = Query(default=20), 
-                   customer_name:str = Query(default=None), current_user: User = Depends(get_current_active_user)):
+def search_product(search_term:str = Query(default=None), customer_name:str = Query(default=None), 
+                   current_user: User = Depends(get_current_active_user)):
     response = None
     response_bulk = []
     products = {}
     if search_term:
-        ids = get_product_by_search_term(limit, search_term)
+        ids = get_product_by_search_term(search_term)
         if ids:
             for id in ids:
                 responses = get_product_info(product_id=id,

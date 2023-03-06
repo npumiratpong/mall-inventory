@@ -74,37 +74,33 @@ def get_price(price:str, price_unit:str) -> str:
         pric += ' / ' + price_unit
     return pric if pric else 0
 
-def determine_price_by_store(price_formulas:List) -> Dict:
-    print (f"::: Determine Price By Store :::")
+def determine_price_by_store(price_formulas:List, product_id:str, user_role:str) -> Dict:
     price = {}
     if not price_formulas and user_role not in ['sale_store', 'sale_admin_store']:
         return 0, None
-    if user_role in ['sale_store', 'sale_admin_store']:
-        return None, None
     else:
         if price_formulas:
             for price_dict in price_formulas:
                 if price_dict.get("unit_code") == "โหล":
                     price = price_dict.get("price_1")
-                    if price:
+                    if price and price != 0:
                         return price, price_dict.get("unit_code")
             for price_dict in price_formulas:
                 if price_dict.get("unit_code") == "ชิ้น":
                     price = price_dict.get("price_2")
-                    if price:
+                    if price and price != 0:
                         return price, price_dict.get("unit_code")
                     price = price_dict.get("price_0")
-                    if price:
+                    if price and price != 0:
                         return price, price_dict.get("unit_code")
             for price_dict in price_formulas:
                 if price_dict.get("unit_code") == "แพ็ค":
                     price = price_dict.get("price_3")
-                    if price:
+                    if price and price != 0:
                         return price, price_dict.get("unit_code")
             return 0, None
         
-def determin_price_by_mall(product_id:str, barcode_unit:str):
-    print (f"::: Determine Price By Mall :::")
+def determin_price_by_mall(product_id:str, barcode_unit:str, customer_name:str):
     if '(' in barcode_unit or ')' in barcode_unit:
         barcode_unit = barcode_unit.split()[-1].strip('()')
     price = get_product_price_for_mall(product_id, barcode_unit, customer_name)[0]
@@ -112,7 +108,17 @@ def determin_price_by_mall(product_id:str, barcode_unit:str):
         return get_price(price, barcode_unit)
     return 0
 
-def record_mapping(pre_record:Dict, barcode:str, price_formulas:List=None) -> Dict:
+def finalize_price(price_formulas:List, code:str, barcode:str, unit_standard:str, user_role:str, customer_name:str):
+    if customer_name == 'store_price':
+        price = get_price(*determine_price_by_store(price_formulas, code, user_role))
+        print (f"::: Price: {price} from Determine Price By Store of prouct ID: {code} by customer : {customer_name}:::")
+    else:
+        price = determin_price_by_mall(code, barcode if barcode else unit_standard['unit_standard'], customer_name)
+        print (f"::: Price: {price} from Determine Price By Mall of prouct ID: {code} by customer : {customer_name}:::")
+    return price
+
+
+def record_mapping(pre_record:Dict, barcode:str, price_formulas:List, user_role:str, customer_name:str) -> Dict:
     re_construct = {}
     re_construct['images'] = pre_record.get('images', None)
     re_construct['barcode'] = barcode
@@ -125,16 +131,12 @@ def record_mapping(pre_record:Dict, barcode:str, price_formulas:List=None) -> Di
     re_construct['balance_qty_net'] = pre_record.get('balance_qty', 0) - re_construct['book_out_qty'] - re_construct['accrued_out_qty'] 
     re_construct['item_type'] = pre_record.get('item_type', None)
     re_construct['discount'] = 0
-    re_construct['price'] = get_price(*determine_price_by_store(price_formulas)) if price_formulas and user_role not in ['sale_shopping_mall','sale_admin_shopping_mall'] \
-                                                                                    or customer_name == 'store_price' \
-                                                                                 else determin_price_by_mall(re_construct['code'],
-                                                                                      barcode if barcode else re_construct['unit_standard'])
+    re_construct['price'] = finalize_price(price_formulas, re_construct['code'], re_construct['barcode'], re_construct['unit_standard'],
+                                           user_role, customer_name)
     re_construct['total_price'] = round(float(str(re_construct['price']).split()[0]) - float(re_construct['discount']), 2)
     return re_construct         
 
 def get_product_info(product_id: int, user:Dict, cust_name:str) -> Dict:
-    global user_role
-    global customer_name
     user_role = user.role
     customer_name = cust_name
     pre_record = {}
@@ -174,18 +176,18 @@ def get_product_info(product_id: int, user:Dict, cust_name:str) -> Dict:
                 for unit in data['units']:
                     if barcode['unit_code'] is None or len(barcode['unit_code']) == 0:
                         barcode_data = get_barcode_unit(barcode['barcode'], barcode['unit_code'])
-                        record = record_mapping(pre_record, barcode_data, pre_record['price_formulas'])
+                        record = record_mapping(pre_record, barcode_data, pre_record['price_formulas'], user_role, customer_name)
                         break                        
                     elif barcode['unit_code'] == unit['unit_code']:
                         barcode_data = get_barcode_unit(barcode['barcode'], barcode['unit_code'])
-                        record = record_mapping(pre_record, barcode_data, pre_record['price_formulas'])
+                        record = record_mapping(pre_record, barcode_data, pre_record['price_formulas'], user_role, customer_name)
                         break
                 if record: 
                     records.append(record) 
         else:
             for unit in data['units']:
                 if unit['unit_code'] == pre_record['unit_standard']:
-                    record = record_mapping(pre_record, None, pre_record['price_formulas'])
+                    record = record_mapping(pre_record, None, pre_record['price_formulas'], user_role, customer_name)
                     records.append(record)
                     break
 

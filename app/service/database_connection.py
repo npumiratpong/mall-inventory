@@ -5,8 +5,12 @@ from .database import engine
 from models.schemas import User
 
 def execute_sql_statement(sql_statement, params=None):
-    with engine.connect() as conn:
-        result = conn.exec_driver_sql(sql_statement, parameters=params).fetchall()
+    try:
+        with engine.connect() as conn:
+            result = conn.exec_driver_sql(sql_statement, parameters=params).fetchall()
+    except Exception as e:
+        print (f"An error occur in query : {e}")
+        return None
     return result
     
 
@@ -55,17 +59,17 @@ def get_product_id(barcode_val:Union[int, str] = None, product_name_val:str =Non
     if not response: return response
     else: return [x for x in response[0]]
 
-def get_product_by_search_term(limit:int, search_term:Union[int, str] = None):
+def get_product_by_search_term(search_term:Union[int, str] = None):
     sql = f"SELECT product_id from products"
     where = []
     response = None
     search_term = search_term.strip()
     
-    where.append(f"product_id LIKE '{search_term}%%'")
-    where.append(f"barcode LIKE '{search_term}%%'")
-    where.append(f"product_name LIKE '{search_term}%%'")
+    where.append(f"product_id LIKE '%%{search_term}%%'")
+    where.append(f"barcode LIKE '%%{search_term}%%'")
+    where.append(f"product_name LIKE '%%{search_term}%%'")
     if where:
-        sql = "{} WHERE {} LIMIT {}".format(sql, " OR ".join(v for v in where), limit)
+        sql = "{} WHERE {}".format(sql, " OR ".join(v for v in where))
         response = execute_sql_statement(sql)
     if not response: return response
     else:
