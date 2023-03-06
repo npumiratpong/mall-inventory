@@ -91,7 +91,7 @@ def finalize_price(price_formulas:List, code:str, barcode:str, unit_standard:str
         price = get_price(*determine_price_by_store(price_formulas, code, user_role))
         print (f"::: Price: {price} from Determine Price By Store of prouct ID: {code} by customer : {customer_name}:::")
     else:
-        price = determin_price_by_mall(code, barcode if barcode else unit_standard['unit_standard'], customer_name)
+        price = determin_price_by_mall(code, barcode if barcode else unit_standard, customer_name)
         print (f"::: Price: {price} from Determine Price By Mall of prouct ID: {code} by customer : {customer_name}:::")
     return price
 
