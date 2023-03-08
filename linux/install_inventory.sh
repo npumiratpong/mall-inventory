@@ -1,17 +1,27 @@
-linux setup
-- Setup Non-Previllege User
-- Install Docker
-- Install Database MySql 8.0
-- 
+#!/bin/bash
 
+# Set environment variables in ~/.bashrc
+echo '#This is path for user application' >> ~/.bashrc
+echo 'TYPE_ENV="prod"' >> ~/.bashrc
+echo 'BASE_PATH="/var/backend/mall-inventory"' >> ~/.bashrc
+echo 'APP_PATH="$BASE_PATH/app"' >> ~/.bashrc
+echo 'SCHEDULER_PATH="$BASE_PATH/job_scheduler"' >> ~/.bashrc
 
-To do List:
-- Config file -- Completed
-- Conjob
-- Auto Restart App
-- Upload CSV to table -- Completed
-- Clean up nginX
+# Reload ~/.bashrc
+source ~/.bashrc
 
+# Unzip tar package to $BASE_PATH
+tar -xvf inventory_.tar -C $BASE_PATH
 
-$env:TYPE_ENV = 'develop'
-$env:TYPE_ENV
+# Move files to /root/ and make them executable
+mv job_runner.sh /root/
+mv process_checks.sh /root/
+mv setup_crons.sh /root/
+chmod +x /root/job_runner.sh
+chmod +x /root/process_checks.sh
+chmod +x /root/setup_crons.sh
+
+# Run the three files in order
+/root/setup_crons.sh
+/root/process_checks.sh
+/root/job_runner.sh
