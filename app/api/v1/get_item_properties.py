@@ -52,10 +52,10 @@ def get_price(price:str, price_unit:str) -> str:
         pric += ' / ' + price_unit
     return pric if pric else 0
 
-def determine_price_by_store(price_formulas:List, product_id:str, user_role:str) -> Dict:
+def determine_price_by_store(price_formulas:List, user_role:str) -> Dict:
     price = {}
-    if not price_formulas and user_role not in ['sale_store', 'sale_admin_store']:
-        return 0, None
+    if user_role not in ['admin', 'sale_store', 'sale_admin_store'] or not price_formulas:
+        return 0, ''
     else:
         if price_formulas:
             for price_dict in price_formulas:
@@ -76,7 +76,7 @@ def determine_price_by_store(price_formulas:List, product_id:str, user_role:str)
                     price = price_dict.get("price_3")
                     if price and price != 0:
                         return price, price_dict.get("unit_code")
-            return 0, None
+            return 0, ''
         
 def determin_price_by_mall(product_id:str, barcode_unit:str, customer_name:str):
     if '(' in barcode_unit or ')' in barcode_unit:
@@ -88,7 +88,7 @@ def determin_price_by_mall(product_id:str, barcode_unit:str, customer_name:str):
 
 def finalize_price(price_formulas:List, code:str, barcode:str, unit_standard:str, user_role:str, customer_name:str):
     if customer_name == 'store_price':
-        price = get_price(*determine_price_by_store(price_formulas, code, user_role))
+        price = get_price(*determine_price_by_store(price_formulas, user_role))
         print (f"::: Price: {price} from Determine Price By Store of prouct ID: {code} by customer : {customer_name}:::")
     else:
         price = determin_price_by_mall(code, barcode if barcode else unit_standard, customer_name)
