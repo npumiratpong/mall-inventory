@@ -47,7 +47,7 @@ def get_customer_names() -> List:
     response = None
     sql = f"SELECT COLUMN_NAME as customer_names "\
           f"FROM INFORMATION_SCHEMA.COLUMNS "\
-          f"WHERE TABLE_SCHEMA = 'inventory' AND TABLE_NAME = 'product_price' AND COLUMN_NAME NOT IN ('item\ code', 'b_unit')"
+          f"WHERE TABLE_SCHEMA = 'inventory' AND TABLE_NAME = 'product_price' AND COLUMN_NAME NOT IN ('Item\ code', 'Unit')"
     
     response = execute_sql_statement(sql)
     if not response: return response
@@ -111,7 +111,7 @@ def get_product_price_for_mall(product_code: Union[int, str], unit_code:str, cus
     response = 0
 
     where.append(f"`Item code` = '{product_code}'")
-    where.append(f"b_unit='{unit_code}'")
+    where.append(f"unit='{unit_code}'")
 
     if where:
         sql = "{} WHERE {}".format(sql, " AND ".join(v for v in where))
@@ -121,4 +121,16 @@ def get_product_price_for_mall(product_code: Union[int, str], unit_code:str, cus
         return [str(x).strip("()',") for x in response]
     return [0]
 
+def get_discount_price(product_code, unit_code):
+    sql = "SELECT `Discount (%%)` FROM discount"
+    where = []
+    where.append(f"`Item code`='{product_code}'")
+    where.append(f"Unit='{unit_code}'")
+
+    if where:
+        sql = "{} WHERE {}".format(sql, " AND ".join(v for v in where))
+        response = execute_sql_statement(sql)
+    if response: 
+        return [str(x).strip("()',") for x in response][0]
+    return 0.00
 
