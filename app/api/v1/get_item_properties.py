@@ -1,6 +1,6 @@
 from typing import Optional, List, Dict
 from models.schemas import User
-from service.database_connection import get_product_price_for_mall
+from service.database_connection import get_product_price_for_mall, get_discount_price
 import requests
 import json
 import yaml
@@ -95,6 +95,16 @@ def finalize_price(price_formulas:List, code:str, barcode:str, unit_standard:str
         print (f"::: Price: {price} from Determine Price By Mall of prouct ID: {code} by customer : {customer_name}:::")
     return price
 
+def determine_discount_price(code:str, barcode:str, unit_standard:str, user_role:str):
+    discount = 0
+    if user_role in ['admin', 'sale_store', 'sale_admin_store']:
+        if '(' in barcode or ')' in barcode:
+            barcode = barcode.split()[-1].strip('()')
+        unit = barcode if barcode else unit_standard
+        discount = float(get_discount_price(code, unit))
+
+    discount_number = (100 - discount)/100
+    return "{} (%)".format(discount), discount_number if discount_number != 0 else 1 
 
 def record_mapping(pre_record:Dict, barcode:str, price_formulas:List, user_role:str, customer_name:str) -> Dict:
     re_construct = {}
@@ -108,10 +118,11 @@ def record_mapping(pre_record:Dict, barcode:str, price_formulas:List, user_role:
     re_construct['accrued_out_qty'] = pre_record.get('accrued_out_qty', 0)
     re_construct['balance_qty_net'] = pre_record.get('balance_qty', 0) - re_construct['book_out_qty'] - re_construct['accrued_out_qty'] 
     re_construct['item_type'] = pre_record.get('item_type', None)
-    re_construct['discount'] = 0.00
+    re_construct['discount'], discount_formula = determine_discount_price(re_construct['code'], re_construct['barcode'], re_construct['unit_standard'], user_role)
     re_construct['price'] = finalize_price(price_formulas, re_construct['code'], re_construct['barcode'], re_construct['unit_standard'],
                                            user_role, customer_name)
-    re_construct['total_price'] = float(str(re_construct['price']).split()[0]) - float(re_construct['discount'])
+    price_formula = float(str(re_construct['price']).split()[0])
+    re_construct['total_price'] = float(str("{:.2f}".format(float(price_formula * discount_formula))))
     return re_construct         
 
 def get_product_info(product_id: int, user:Dict, cust_name:str) -> Dict:
