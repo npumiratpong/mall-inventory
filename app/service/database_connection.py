@@ -132,5 +132,5 @@ def get_discount_price(product_code, unit_code):
         response = execute_sql_statement(sql)
     if response: 
         return [str(x).strip("()',") for x in response][0]
-    return 0.00
+    return 0
 
