@@ -76,3 +76,6 @@ ProductList = List[ProductBaseModel]
 class ProductModel(BaseModel):
     total_items: int
     products: ProductList
+
+class CustomerName(BaseModel):
+    customer_names: List

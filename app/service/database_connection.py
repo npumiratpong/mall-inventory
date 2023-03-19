@@ -43,6 +43,16 @@ def get_all_items(type: str) -> List:
     if not response: return []
     else: return [str(x).strip("()',") for x in response]
 
+def get_customer_names() -> List:
+    response = None
+    sql = f"SELECT COLUMN_NAME as customer_names "\
+          f"FROM INFORMATION_SCHEMA.COLUMNS "\
+          f"WHERE TABLE_SCHEMA = 'inventory' AND TABLE_NAME = 'product_price' AND COLUMN_NAME NOT IN ('item\ code', 'b_unit')"
+    
+    response = execute_sql_statement(sql)
+    if not response: return response
+    else: return [str(x).strip("()',") for x in response]
+
 def get_product_id(barcode_val:Union[int, str] = None, product_name_val:str =None):
     sql = f"SELECT product_id from products"
     where = []
