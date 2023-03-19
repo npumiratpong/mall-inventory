@@ -15,10 +15,12 @@ def search_product(search_term:str = Query(default=None), limit:int = Query(defa
                    customer_name:str = Query(default=None), current_user: User = Depends(get_current_active_user)):
     response = None
     response_bulk = []
+    total = 0
     products = {}
     if search_term:
         ids = get_product_by_search_term(limit, search_term)
         if ids:
+            total = len(ids)
             for id in ids:
                 responses = get_product_info(product_id=id,
                                             user=current_user,
@@ -28,6 +30,7 @@ def search_product(search_term:str = Query(default=None), limit:int = Query(defa
                         response_bulk.append(response)
                 else:
                     continue
+    products['total_items'] = total
     products['products'] = response_bulk
     return products
 

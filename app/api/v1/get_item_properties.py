@@ -47,15 +47,15 @@ def get_barcode_unit(barcode:str, barcode_unit:str) -> Dict:
 def get_price(price:str, price_unit:str) -> str:
     pric = ''
     if price:
-        pric += str(round(float(price), 3))
+        pric += str("{:.2f}".format(float(price)))
     if price_unit:
         pric += ' / ' + price_unit
-    return pric if pric else 0
+    return pric if pric else 0.00
 
 def determine_price_by_store(price_formulas:List, user_role:str) -> Dict:
     price = {}
     if user_role not in ['admin', 'sale_store', 'sale_admin_store'] or not price_formulas:
-        return 0, ''
+        return 0.00, ''
     else:
         if price_formulas:
             for price_dict in price_formulas:
@@ -76,7 +76,7 @@ def determine_price_by_store(price_formulas:List, user_role:str) -> Dict:
                     price = price_dict.get("price_3")
                     if price and price != 0:
                         return price, price_dict.get("unit_code")
-            return 0, ''
+            return 0.00, ''
         
 def determin_price_by_mall(product_id:str, barcode_unit:str, customer_name:str):
     if '(' in barcode_unit or ')' in barcode_unit:
@@ -84,7 +84,7 @@ def determin_price_by_mall(product_id:str, barcode_unit:str, customer_name:str):
     price = get_product_price_for_mall(product_id, barcode_unit, customer_name)[0]
     if price:
         return get_price(price, barcode_unit)
-    return 0
+    return 0.00
 
 def finalize_price(price_formulas:List, code:str, barcode:str, unit_standard:str, user_role:str, customer_name:str):
     if customer_name == 'store_price':
@@ -108,10 +108,10 @@ def record_mapping(pre_record:Dict, barcode:str, price_formulas:List, user_role:
     re_construct['accrued_out_qty'] = pre_record.get('accrued_out_qty', 0)
     re_construct['balance_qty_net'] = pre_record.get('balance_qty', 0) - re_construct['book_out_qty'] - re_construct['accrued_out_qty'] 
     re_construct['item_type'] = pre_record.get('item_type', None)
-    re_construct['discount'] = 0
+    re_construct['discount'] = 0.00
     re_construct['price'] = finalize_price(price_formulas, re_construct['code'], re_construct['barcode'], re_construct['unit_standard'],
                                            user_role, customer_name)
-    re_construct['total_price'] = round(float(str(re_construct['price']).split()[0]) - float(re_construct['discount']), 2)
+    re_construct['total_price'] = float(str(re_construct['price']).split()[0]) - float(re_construct['discount'])
     return re_construct         
 
 def get_product_info(product_id: int, user:Dict, cust_name:str) -> Dict:
@@ -161,6 +161,7 @@ def get_product_info(product_id: int, user:Dict, cust_name:str) -> Dict:
                 if record: 
                     records.append(record) 
         else:
+            print (f"It's hereeeee")
             for unit in data['units']:
                 if unit['unit_code'] == pre_record['unit_standard']:
                     record = record_mapping(pre_record, None, pre_record['price_formulas'], user_role, customer_name)
