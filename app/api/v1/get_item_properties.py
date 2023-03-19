@@ -50,7 +50,7 @@ def get_price(price:str, price_unit:str) -> str:
         pric += str("{:.2f}".format(float(price)))
     if price_unit:
         pric += ' / ' + price_unit
-    return pric if pric else 0.00
+    return pric if pric else 0.00, float(price)
 
 def determine_price_by_store(price_formulas:List, user_role:str) -> Dict:
     price = {}
@@ -84,21 +84,21 @@ def determin_price_by_mall(product_id:str, barcode_unit:str, customer_name:str):
     price = get_product_price_for_mall(product_id, barcode_unit, customer_name)[0]
     if price:
         return get_price(price, barcode_unit)
-    return 0.00
+    return '0', 0.00
 
 def finalize_price(price_formulas:List, code:str, barcode:str, unit_standard:str, user_role:str, customer_name:str):
     if customer_name == 'store_price':
-        price = get_price(*determine_price_by_store(price_formulas, user_role))
-        print (f"::: Price: {price} from Determine Price By Store of prouct ID: {code} by customer : {customer_name}:::")
+        price_form, price = get_price(*determine_price_by_store(price_formulas, user_role))
+        print (f"::: Price: {price_form} from Determine Price By Store of prouct ID: {code} by customer : {customer_name}:::")
     else:
-        price = determin_price_by_mall(code, barcode if barcode else unit_standard, customer_name)
-        print (f"::: Price: {price} from Determine Price By Mall of prouct ID: {code} by customer : {customer_name}:::")
-    return price
+        price_form, price = determin_price_by_mall(code, barcode if barcode else unit_standard, customer_name)
+        print (f"::: Price: {price_form} from Determine Price By Mall of prouct ID: {code} by customer : {customer_name}:::")
+    return price_form, price
 
 def determine_discount_price(code:str, barcode:str, unit_standard:str, user_role:str):
     discount = 0
     if user_role in ['admin', 'sale_store', 'sale_admin_store']:
-        if '(' in barcode or ')' in barcode:
+        if barcode is not None:
             barcode = barcode.split()[-1].strip('()')
         unit = barcode if barcode else unit_standard
         discount = float(get_discount_price(code, unit))
@@ -118,9 +118,8 @@ def record_mapping(pre_record:Dict, barcode:str, price_formulas:List, user_role:
     re_construct['balance_qty_net'] = pre_record.get('balance_qty', 0) - re_construct['book_out_qty'] - re_construct['accrued_out_qty'] 
     re_construct['item_type'] = pre_record.get('item_type', None)
     re_construct['discount'], discount_formula = determine_discount_price(re_construct['code'], re_construct['barcode'], re_construct['unit_standard'], user_role)
-    re_construct['price'] = finalize_price(price_formulas, re_construct['code'], re_construct['barcode'], re_construct['unit_standard'],
+    re_construct['price'], price_formula = finalize_price(price_formulas, re_construct['code'], re_construct['barcode'], re_construct['unit_standard'],
                                            user_role, customer_name)
-    price_formula = float(str(re_construct['price']).split()[0])
     re_construct['total_price'] = float(str("{:.2f}".format(float(price_formula * discount_formula))))
     return re_construct         
 
@@ -171,7 +170,6 @@ def get_product_info(product_id: int, user:Dict, cust_name:str) -> Dict:
                 if record: 
                     records.append(record) 
         else:
-            print (f"It's hereeeee")
             for unit in data['units']:
                 if unit['unit_code'] == pre_record['unit_standard']:
                     record = record_mapping(pre_record, None, pre_record['price_formulas'], user_role, customer_name)
