@@ -13,7 +13,7 @@ if pgrep uvicorn > /dev/null; then
 fi
 
 # Step 2: Remove appended variables from .bashrc file
-sed -i '/# This is path for user application/d' ~/.bashrc
+sed -i '/#This is path for user application/d' ~/.bashrc
 sed -i '/TYPE_ENV="prod"/d' ~/.bashrc
 sed -i '/BASE_PATH="\/var\/backend\/mall-inventory"/d' ~/.bashrc
 sed -i '/APP_PATH="$BASE_PATH\/app"/d' ~/.bashrc

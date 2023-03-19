@@ -69,18 +69,34 @@ def get_product_id(barcode_val:Union[int, str] = None, product_name_val:str =Non
     if not response: return response
     else: return [x for x in response[0]]
 
-def get_product_by_search_term(limit:int, search_term:Union[int, str] = None):
-    sql = f"SELECT product_id from products"
+def get_search_query_items(field:str, search_term) -> str:
+    sql = f"SELECT {field} from products"
     where = []
-    response = None
     search_term = search_term.strip()
     
     where.append(f"product_id LIKE '%%{search_term}%%'")
     where.append(f"barcode LIKE '%%{search_term}%%'")
     where.append(f"product_name LIKE '%%{search_term}%%'")
     if where:
-        sql = "{} WHERE {} LIMIT {}".format(sql, " OR ".join(v for v in where), limit)
-        response = execute_sql_statement(sql)
+        sql = "{} WHERE {}".format(sql, " OR ".join(v for v in where))
+        return sql
+
+def count_all_items_by_search_item(search_term:Union[int, str] = None):
+    response = None
+    sql_query = get_search_query_items('count(*)', search_term)
+    if sql_query:
+        sql_query = sql_query
+        response = execute_sql_statement(sql_query)
+    if not response: return response
+    else:
+        return [x for x in response[0]][0]
+
+def get_product_by_search_term(limit:int, search_term:Union[int, str] = None):
+    response = None
+    sql_query = get_search_query_items('product_id', search_term)
+    if sql_query:
+        sql_query = "{} LIMIT {}".format(sql_query, limit)
+        response = execute_sql_statement(sql_query)
     if not response: return response
     else:
         return [str(x).strip("()',") for x in response]
