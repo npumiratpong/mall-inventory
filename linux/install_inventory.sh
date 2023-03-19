@@ -20,9 +20,12 @@ fi
 git clone https://github.com/npumiratpong/mall-inventory.git /var/backend/mall-inventory
 
 # Move files to /root/ and make them executable
+cd /var/backend/mall-inventory/linux/
+
 mv job_runner.sh /root/
 mv process_checks.sh /root/
 mv setup_crons.sh /root/
+
 chmod +x /root/job_runner.sh
 chmod +x /root/process_checks.sh
 chmod +x /root/setup_crons.sh

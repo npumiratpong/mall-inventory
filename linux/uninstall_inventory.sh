@@ -1,5 +1,11 @@
 #!/bin/bash
 
+PROCESS_CHECKS="/root/process_checks.sh"
+JOB_SCHEDULER="/root/job_runner.sh"
+
+(crontab -l 2>/dev/null|grep -v $PROCESS_CHECKS)|crontab -
+(crontab -l 2>/dev/null|grep -v $JOB_SCHEDULER)|crontab -
+
 # Step 1: Check for running instances of uvicorn and kill them
 if pgrep uvicorn > /dev/null; then
     echo "Killing running instances of uvicorn..."
