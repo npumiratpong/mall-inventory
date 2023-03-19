@@ -67,11 +67,15 @@ class ProductBaseModel(BaseModel):
     accrued_out_qty: Optional[int] = 0
     balance_qty_net: Optional[int] = 0
     item_type: Optional[int]
-    discount: float = 0
-    price: str = 0
-    total_price: float = 0
+    discount: float = 0.00
+    price: str = 0.00
+    total_price: float = 0.00
 
 ProductList = List[ProductBaseModel]
 
 class ProductModel(BaseModel):
+    total_items: int
     products: ProductList
+
+class CustomerName(BaseModel):
+    customer_names: List

@@ -5,8 +5,8 @@ from pydantic import parse_obj_as
 
 from api.v1.get_item_properties import get_product_info
 from service.controller import get_db,  get_current_active_user
-from service.database_connection import get_all_items, get_product_by_search_term
-from models.schemas import User, ProductModel
+from service.database_connection import get_all_items, get_product_by_search_term, get_customer_names
+from models.schemas import User, ProductModel, CustomerName
 
 router = APIRouter()
 
@@ -15,10 +15,12 @@ def search_product(search_term:str = Query(default=None), limit:int = Query(defa
                    customer_name:str = Query(default=None), current_user: User = Depends(get_current_active_user)):
     response = None
     response_bulk = []
+    total = 0
     products = {}
     if search_term:
         ids = get_product_by_search_term(limit, search_term)
         if ids:
+            total = len(ids)
             for id in ids:
                 responses = get_product_info(product_id=id,
                                             user=current_user,
@@ -28,11 +30,12 @@ def search_product(search_term:str = Query(default=None), limit:int = Query(defa
                         response_bulk.append(response)
                 else:
                     continue
+    products['total_items'] = total
     products['products'] = response_bulk
     return products
 
-@router.get('/pre-search/{type}')
-def get_product_from_product_lists(type:str, current_user: User = Depends(get_current_active_user)) -> Dict:
-    items = None
-    items = get_all_items(type=type)
-    return {"fetch_items": items}
+@router.get('/customer_names', response_model=CustomerName)
+def get_product_from_product_lists(current_user: User = Depends(get_current_active_user)):
+    names = None
+    names = get_customer_names()
+    return {"customer_names": names}
