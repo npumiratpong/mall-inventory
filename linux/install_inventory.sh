@@ -26,6 +26,7 @@ mv job_runner.sh /root/
 mv process_checks.sh /root/
 mv setup_crons.sh /root/
 
+chmod +x /var/backend/mall-inventory/job_scheduler/main.py
 chmod +x /root/job_runner.sh
 chmod +x /root/process_checks.sh
 chmod +x /root/setup_crons.sh
