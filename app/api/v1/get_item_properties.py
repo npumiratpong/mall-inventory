@@ -1,6 +1,8 @@
 from typing import Optional, List, Dict
 from models.schemas import User
 from service.database_connection import get_product_price_for_mall, get_discount_price
+from requests.adapters import HTTPAdapter, Retry
+
 import requests
 import json
 import yaml
@@ -15,9 +17,30 @@ with open(config_path, 'r') as file:
 
 config = doc[env]
 
-def get_api_response(url, headers, timeout:int=10) -> Dict:
-    response = requests.get(url=url, headers=headers, timeout=timeout)
-    if response.status_code == 200: body_text = json.loads(response.text)
+def get_api_response(url, headers, params={}, timeout:int=5) -> Dict:
+    retry_strategy = Retry(
+                            total=3,
+                            backoff_factor=1,
+                            status_forcelist=[429, 500, 502, 503, 504]
+                            )
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    http = requests.Session()
+    http.mount("https://", adapter)
+    http.mount("http://", adapter)
+
+    try:
+        response = http.get(url, headers=headers, params=params, timeout=timeout)
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as errh:
+        print("HTTP Error:", errh)
+    except requests.exceptions.ConnectionError as errc:
+        print("Connection Error:", errc)
+    except requests.exceptions.Timeout as errt:
+        print("Timeout Error:", errt)
+    except requests.exceptions.RequestException as err:
+        print("Something went wrong:", err)
+    else:
+        if response.status_code == 200: body_text = json.loads(response.text)
     return body_text, response.status_code
 
 def transform_list2str(items, indexs, index) -> str:
