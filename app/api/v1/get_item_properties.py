@@ -118,9 +118,9 @@ def finalize_price(price_formulas:List, code:str, barcode:str, unit_standard:str
         print (f"::: Price: {price_form} from Determine Price By Mall of prouct ID: {code} by customer : {customer_name}:::")
     return price_form, price
 
-def determine_discount_price(code:str, barcode:str, unit_standard:str, user_role:str):
+def determine_discount_price(code:str, barcode:str, unit_standard:str, user_role:str, customer_name:str):
     discount = 0
-    if user_role in ['admin', 'sale_store', 'sale_admin_store']:
+    if user_role in ['admin', 'sale_store', 'sale_admin_store'] and customer_name == 'store_price':
         if barcode is not None:
             barcode = barcode.split()[-1].strip('()')
         unit = barcode if barcode else unit_standard
@@ -140,7 +140,7 @@ def record_mapping(pre_record:Dict, barcode:str, price_formulas:List, user_role:
     re_construct['accrued_out_qty'] = pre_record.get('accrued_out_qty', 0)
     re_construct['balance_qty_net'] = pre_record.get('balance_qty', 0) - re_construct['book_out_qty'] - re_construct['accrued_out_qty'] 
     re_construct['item_type'] = pre_record.get('item_type', None)
-    re_construct['discount'], discount_formula = determine_discount_price(re_construct['code'], re_construct['barcode'], re_construct['unit_standard'], user_role)
+    re_construct['discount'], discount_formula = determine_discount_price(re_construct['code'], re_construct['barcode'], re_construct['unit_standard'], user_role, customer_name)
     re_construct['price'], price_formula = finalize_price(price_formulas, re_construct['code'], re_construct['barcode'], re_construct['unit_standard'],
                                            user_role, customer_name)
     re_construct['total_price'] = float(str("{:.2f}".format(float(price_formula * discount_formula))))
