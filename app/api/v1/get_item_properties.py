@@ -18,6 +18,7 @@ with open(config_path, 'r') as file:
 config = doc[env]
 
 def get_api_response(url, headers, params={}, timeout:int=5) -> Dict:
+    body_text = ''
     retry_strategy = Retry(
                             total=3,
                             backoff_factor=1,
@@ -67,18 +68,38 @@ def get_barcode_unit(barcode:str, barcode_unit:str) -> Dict:
         bar += ' (' + barcode_unit + ')'
     return bar if bar else None
 
+def get_standard_value(units:List):
+    for unit in units:
+        if unit.get('unit_code') == 'ลัง':
+            return unit.get('stand_value')
+    return None
+
 def get_price(price:str, price_unit:str) -> str:
     pric = ''
+
     if price:
         pric += str("{:.2f}".format(float(price)))
     if price_unit:
         pric += ' / ' + price_unit
-    return pric if pric else 0.00, float(price)
+
+    if pric == '0.00 / N/A': pric = ''
+
+    return pric, float(price)
+
+def determine_discount_price(code:str, barcode:str, unit_standard:str, user_role:str, customer_name:str):
+    discount = 0
+    if user_role in ['admin', 'sale_store', 'sale_admin_store'] and customer_name == 'store_price':
+        if barcode is not None:
+            barcode = barcode.split()[-1].strip('()')
+        unit = barcode if barcode else unit_standard
+        discount = float(get_discount_price(code, unit))
+    discount_number = (100 - discount)/100
+    return "{} (%)".format(discount), discount_number
 
 def determine_price_by_store(price_formulas:List, user_role:str) -> Dict:
     price = {}
     if user_role not in ['admin', 'sale_store', 'sale_admin_store'] or not price_formulas:
-        return 0.00, ''
+        return None, None
     else:
         if price_formulas:
             for price_dict in price_formulas:
@@ -99,35 +120,32 @@ def determine_price_by_store(price_formulas:List, user_role:str) -> Dict:
                     price = price_dict.get("price_3")
                     if price and price != 0:
                         return price, price_dict.get("unit_code")
-            return 0.00, ''
+            return None, None
         
-def determin_price_by_mall(product_id:str, barcode_unit:str, customer_name:str):
+def determin_price_by_mall(product_id:str, barcode_unit:str, customer_name:str) -> str:
     if '(' in barcode_unit or ')' in barcode_unit:
         barcode_unit = barcode_unit.split()[-1].strip('()')
     price = get_product_price_for_mall(product_id, barcode_unit, customer_name)[0]
     if price:
-        return get_price(price, barcode_unit)
-    return '0', 0.00
+        return price, barcode_unit
+    else:
+        return None, barcode_unit
 
 def finalize_price(price_formulas:List, code:str, barcode:str, unit_standard:str, user_role:str, customer_name:str):
+    default_price = '0.00'
+    default_unitcode = 'N/A'
+    user_type = 'Store' if customer_name == 'store_price' else 'Mall'
     if customer_name == 'store_price':
-        price_form, price = get_price(*determine_price_by_store(price_formulas, user_role))
-        print (f"::: Price: {price_form} from Determine Price By Store of prouct ID: {code} by customer : {customer_name}:::")
+        final_price, final_code = determine_price_by_store(price_formulas, user_role)
     else:
-        price_form, price = determin_price_by_mall(code, barcode if barcode else unit_standard, customer_name)
-        print (f"::: Price: {price_form} from Determine Price By Mall of prouct ID: {code} by customer : {customer_name}:::")
+        final_price, final_code = determin_price_by_mall(code, barcode if barcode else unit_standard, customer_name)
+
+    price_form, price = get_price(final_price if final_price else default_price, 
+                                  final_code if final_code else default_unitcode)
+                                  
+    print (f"::: Price: {price_form} from Determine Price By {user_type} of prouct ID: {code} by customer : {customer_name}:::")
     return price_form, price
-
-def determine_discount_price(code:str, barcode:str, unit_standard:str, user_role:str, customer_name:str):
-    discount = 0
-    if user_role in ['admin', 'sale_store', 'sale_admin_store'] and customer_name == 'store_price':
-        if barcode is not None:
-            barcode = barcode.split()[-1].strip('()')
-        unit = barcode if barcode else unit_standard
-        discount = float(get_discount_price(code, unit))
-    discount_number = (100 - discount)/100
-    return "{} (%)".format(discount), discount_number
-
+    
 def record_mapping(pre_record:Dict, barcode:str, price_formulas:List, user_role:str, customer_name:str) -> Dict:
     re_construct = {}
     re_construct['images'] = pre_record.get('images', None)
@@ -140,9 +158,10 @@ def record_mapping(pre_record:Dict, barcode:str, price_formulas:List, user_role:
     re_construct['accrued_out_qty'] = pre_record.get('accrued_out_qty', 0)
     re_construct['balance_qty_net'] = pre_record.get('balance_qty', 0) - re_construct['book_out_qty'] - re_construct['accrued_out_qty'] 
     re_construct['item_type'] = pre_record.get('item_type', None)
+    re_construct['stand_value'] = pre_record.get('stand_value', None)
     re_construct['discount'], discount_formula = determine_discount_price(re_construct['code'], re_construct['barcode'], re_construct['unit_standard'], user_role, customer_name)
     re_construct['price'], price_formula = finalize_price(price_formulas, re_construct['code'], re_construct['barcode'], re_construct['unit_standard'],
-                                           user_role, customer_name)
+                                                          user_role, customer_name)
     re_construct['total_price'] = float(str("{:.2f}".format(float(price_formula * discount_formula))))
     return re_construct         
 
@@ -178,6 +197,7 @@ def get_product_info(product_id: int, user:Dict, cust_name:str) -> Dict:
         pre_record['unit_standard'] = data.get('unit_standard', None)
         pre_record['item_type'] = data.get('item_type', None)
         pre_record['properties'] = properties
+        pre_record['stand_value'] = get_standard_value(data['units'])
 
         if barcodes:
             for barcode in barcodes:
