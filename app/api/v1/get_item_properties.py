@@ -1,7 +1,9 @@
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any
 from models.schemas import User
 from service.database_connection import get_product_price_for_mall, get_discount_price
 from requests.adapters import HTTPAdapter, Retry
+from fastapi import HTTPException
+
 
 import requests
 import json
@@ -33,13 +35,17 @@ def get_api_response(url, headers, params={}, timeout:int=5) -> Dict:
         response = http.get(url, headers=headers, params=params, timeout=timeout)
         response.raise_for_status()
     except requests.exceptions.HTTPError as errh:
-        print("HTTP Error:", errh)
+        print("SML HTTP Error:", errh)
+        raise HTTPException(status_code=502, detail=f"SML HTTP Error")
     except requests.exceptions.ConnectionError as errc:
-        print("Connection Error:", errc)
+        print("SML Connection Error:", errc)
+        raise HTTPException(status_code=503, detail=f"SML Connection Error")
     except requests.exceptions.Timeout as errt:
-        print("Timeout Error:", errt)
+        print("SML Timeout Error:", errt)
+        raise HTTPException(status_code=504, detail=f"SML Timeout Error")
     except requests.exceptions.RequestException as err:
-        print("Something went wrong:", err)
+        print("Something went wrong with SML:", err)
+        raise HTTPException(status_code=500, detail=f"Something went wrong with SML")
     else:
         if response.status_code == 200: body_text = json.loads(response.text)
     return body_text, response.status_code
@@ -96,7 +102,7 @@ def determine_discount_price(code:str, barcode:str, unit_standard:str, user_role
     discount_number = (100 - discount)/100
     return "{} (%)".format(discount), discount_number
 
-def determine_price_by_store(price_formulas:List, user_role:str) -> Dict:
+def determine_price_by_store(price_formulas:List, user_role:str) -> Any:
     price = {}
     if user_role not in ['admin', 'sale_store', 'sale_admin_store'] or not price_formulas:
         return None, None
