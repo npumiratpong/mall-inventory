@@ -98,9 +98,9 @@ def determine_discount_price(code:str, barcode:str, unit_standard:str, user_role
         if barcode is not None:
             barcode = barcode.split()[-1].strip('()')
         unit = barcode if barcode else unit_standard
-        discount = int(get_discount_price(code, unit))
+        discount = float(get_discount_price(code, unit))
     discount_number = (100 - discount)/100
-    return "{} (%)".format(discount), discount_number
+    return "{} (%)".format(int(discount)), discount_number
 
 def determine_price_by_store(price_formulas:List, user_role:str) -> Any:
     price = {}
