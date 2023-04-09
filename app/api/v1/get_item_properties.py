@@ -100,6 +100,8 @@ def determine_discount_price(code:str, barcode:str, unit_standard:str, user_role
         unit = barcode if barcode else unit_standard
         discount = float(get_discount_price(code, unit))
     discount_number = (100 - discount)/100
+    if int(discount) == 0:
+        return '', 1
     return "{} (%)".format(int(discount)), discount_number
 
 def determine_price_by_store(price_formulas:List, user_role:str) -> Any:
@@ -150,6 +152,8 @@ def finalize_price(price_formulas:List, code:str, barcode:str, unit_standard:str
                                   final_code if final_code else default_unitcode)
                                   
     print (f"::: Price: {price_form} from Determine Price By {user_type} of prouct ID: {code} by customer : {customer_name}:::")
+    if price_form.startswith('0.00'):
+        return '', None
     return price_form, price
     
 def record_mapping(pre_record:Dict, barcode:str, price_formulas:List, user_role:str, customer_name:str) -> Dict:
@@ -168,7 +172,7 @@ def record_mapping(pre_record:Dict, barcode:str, price_formulas:List, user_role:
     re_construct['discount'], discount_formula = determine_discount_price(re_construct['code'], re_construct['barcode'], re_construct['unit_standard'], user_role, customer_name)
     re_construct['price'], price_formula = finalize_price(price_formulas, re_construct['code'], re_construct['barcode'], re_construct['unit_standard'],
                                                           user_role, customer_name)
-    re_construct['total_price'] = float(str("{:.2f}".format(float(price_formula * discount_formula))))
+    re_construct['total_price'] = str("{:.2f}".format(float(price_formula * discount_formula))) if price_formula else ''
     return re_construct         
 
 def get_product_info(product_id: int, user:Dict, cust_name:str) -> Dict:
