@@ -98,7 +98,7 @@ def determine_discount_price(code:str, barcode:str, unit_standard:str, user_role
         if barcode is not None:
             barcode = barcode.split()[-1].strip('()')
         unit = barcode if barcode else unit_standard
-        discount = float(get_discount_price(code, unit))
+        discount = int(get_discount_price(code, unit))
     discount_number = (100 - discount)/100
     return "{} (%)".format(discount), discount_number
 
